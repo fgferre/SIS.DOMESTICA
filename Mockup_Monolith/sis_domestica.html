@@ -1,0 +1,665 @@
+import React, { useState, useMemo, useEffect } from 'react';
+import { 
+  Calculator, 
+  Wallet, 
+  Building2, 
+  ChevronDown, 
+  ChevronRight, 
+  CheckCircle, 
+  Circle, 
+  PenLine,
+  Receipt,
+  PiggyBank,
+  AlertTriangle
+} from 'lucide-react';
+
+// --- SISTEMA DE TABELAS COM VIGÊNCIA (VERSIONAMENTO) ---
+const TAX_TABLES_HISTORY = [
+  {
+    validFrom: '2024-01-01',
+    validTo: '2024-12-31',
+    inss: [
+      { limit: 1412.00, rate: 0.075, deduction: 0 },
+      { limit: 2666.68, rate: 0.09, deduction: 21.18 },
+      { limit: 4000.03, rate: 0.12, deduction: 101.18 },
+      { limit: 7786.02, rate: 0.14, deduction: 181.18 }
+    ],
+    irrf: [
+      { limit: 2259.20, rate: 0, deduction: 0 },
+      { limit: 2826.65, rate: 0.075, deduction: 169.44 },
+      { limit: 3751.05, rate: 0.15, deduction: 381.44 },
+      { limit: 4664.68, rate: 0.225, deduction: 662.77 },
+      { limit: 99999.99, rate: 0.275, deduction: 896.00 }
+    ],
+    deducaoDependente: 189.59
+  },
+  {
+    validFrom: '2025-01-01', 
+    validTo: '2099-12-31', 
+    inss: [
+      { limit: 1518.00, rate: 0.075, deduction: 0 }, // Salário Mínimo 2025 estimado
+      { limit: 2790.00, rate: 0.09, deduction: 22.77 },
+      { limit: 4190.00, rate: 0.12, deduction: 106.47 },
+      { limit: 8157.00, rate: 0.14, deduction: 190.27 }
+    ],
+    irrf: [
+      { limit: 2259.20, rate: 0, deduction: 0 }, // Tabela IRRF congela ou muda pouco
+      { limit: 2826.65, rate: 0.075, deduction: 169.44 },
+      { limit: 3751.05, rate: 0.15, deduction: 381.44 },
+      { limit: 4664.68, rate: 0.225, deduction: 662.77 },
+      { limit: 99999.99, rate: 0.275, deduction: 896.00 }
+    ],
+    deducaoDependente: 189.59
+  }
+];
+
+const getTableForDate = (dateObj) => {
+  const dateStr = dateObj.toISOString().split('T')[0];
+  const table = TAX_TABLES_HISTORY.find(t => dateStr >= t.validFrom && dateStr <= t.validTo);
+  return table || TAX_TABLES_HISTORY[TAX_TABLES_HISTORY.length - 1];
+};
+
+const ENCARGOS_PATRAO = {
+  inss_patronal: 0.08,    
+  fgts: 0.08,             
+  seguro_acid: 0.008,     
+  multa_fgts: 0.032       
+};
+
+// --- CÁLCULOS PUROS ---
+const calculateINSS = (bruto, dateObj) => {
+  const table = getTableForDate(dateObj).inss;
+  const teto = table[table.length - 1];
+  if (bruto > teto.limit) return (teto.limit * teto.rate) - teto.deduction; 
+  const faixa = table.find(f => bruto <= f.limit) || teto;
+  return (bruto * faixa.rate) - faixa.deduction;
+};
+
+const calculateIRRF = (baseCalculo, dateObj) => {
+  const table = getTableForDate(dateObj);
+  const irTable = table.irrf;
+  if (baseCalculo <= irTable[0].limit) return 0;
+  const faixa = irTable.find(f => baseCalculo <= f.limit) || irTable[irTable.length - 1];
+  const irrf = (baseCalculo * faixa.rate) - faixa.deduction;
+  return irrf > 0 ? irrf : 0;
+};
+
+const findGrossFromNet = (targetNet, dependentes = 0, dateObj) => {
+  let low = targetNet;
+  let high = targetNet * 2.5;
+  let gross = 0;
+  let attempts = 0;
+  const tableConfig = getTableForDate(dateObj);
+
+  while (attempts < 50) {
+    gross = (low + high) / 2;
+    const inss = calculateINSS(gross, dateObj);
+    const baseIR = gross - inss - (dependentes * tableConfig.deducaoDependente);
+    const irrf = calculateIRRF(baseIR, dateObj);
+    const net = gross - inss - irrf;
+
+    if (Math.abs(net - targetNet) < 0.01) return gross;
+    if (net < targetNet) low = gross;
+    else high = gross;
+    attempts++;
+  }
+  return gross;
+};
+
+const formatCurrency = (val) => {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+};
+
+export default function DomesticManagementSystem() {
+  const [currentYear, setCurrentYear] = useState(2025);
+  const [viewMode, setViewMode] = useState('caixa'); 
+  const [vacationMonth, setVacationMonth] = useState('none');
+  const [dependentes, setDependentes] = useState(0);
+  const [globalValue, setGlobalValue] = useState(3000);
+  const [expandedRows, setExpandedRows] = useState({}); 
+
+  const [ledgersByYear, setLedgersByYear] = useState({});
+
+  const generateEmptyYear = (year) => {
+    return Array.from({ length: 12 }, (_, i) => {
+      const isSecondHalf = i >= 6; 
+      let defaultNet = 3000;
+      if (year === 2025) defaultNet = isSecondHalf ? 3000 : 2700;
+      
+      return {
+        id: i,
+        month: i + 1,
+        year: year,
+        dateRef: new Date(year, i, 1),
+        name: new Date(year, i, 1).toLocaleString('pt-BR', { month: 'long' }),
+        baseNet: defaultNet,
+        workedHolidays: false,
+        advances: 0, 
+        adjustments: 0, 
+        status: 'pending', 
+        paymentDate: '',
+      };
+    });
+  };
+
+  useEffect(() => {
+    if (!ledgersByYear[currentYear]) {
+      setLedgersByYear(prev => ({
+        ...prev,
+        [currentYear]: generateEmptyYear(currentYear)
+      }));
+    }
+  }, [currentYear]);
+
+  const currentLedger = ledgersByYear[currentYear] || [];
+
+  // --- ENGINE DE CÁLCULO ---
+  const calculation = useMemo(() => {
+    let accumulatedBonus = 0;
+    const processedData = [];
+
+    for (let i = 0; i < currentLedger.length; i++) {
+      const entry = currentLedger[i];
+      
+      // 1. Cálculos Base
+      const brutoMensal = findGrossFromNet(entry.baseNet, dependentes, entry.dateRef);
+      const custoFeriado = entry.workedHolidays ? (brutoMensal / 30) : 0;
+      const brutoComExtras = brutoMensal + custoFeriado;
+
+      // 2. Competência
+      const inssSegurado = calculateINSS(brutoComExtras, entry.dateRef);
+      const deducaoDep = getTableForDate(entry.dateRef).deducaoDependente;
+      const baseIR = brutoComExtras - inssSegurado - (dependentes * deducaoDep);
+      const irrfSegurado = calculateIRRF(baseIR, entry.dateRef);
+      
+      // Encargos Patrão (20%)
+      const inssPatr = brutoComExtras * 0.08;
+      const fgts = brutoComExtras * 0.08;
+      const seguro = brutoComExtras * 0.008;
+      const multa = brutoComExtras * 0.032;
+      const totalEncargosPatrao = inssPatr + fgts + seguro + multa;
+      
+      // Provisões Detalhadas (1/12)
+      const provFerias = brutoComExtras / 12;
+      const provTerco = (brutoComExtras / 3) / 12;
+      const prov13 = brutoComExtras / 12;
+      const encargosProv = (provFerias + provTerco + prov13) * 0.20;
+      const totalProvisoes = provFerias + provTerco + prov13 + encargosProv;
+      
+      const custoCompetenciaTotal = brutoComExtras + totalEncargosPatrao + totalProvisoes;
+      
+      // 3. Caixa
+      let fluxoCaixaEmpregador = 0;
+      let liquidoRecebidoElaCLT = 0;
+      let eventosCaixa = [];
+      
+      // Objeto de Auditoria Detalhado
+      let audit = {
+         bruto_base: brutoComExtras,
+         inss_seg: inssSegurado,
+         irrf_seg: irrfSegurado,
+         
+         // Detalhe DAE (Mensal Normal)
+         dae_inss_patr: inssPatr,
+         dae_fgts: fgts,
+         dae_seguro: seguro,
+         dae_multa: multa,
+         dae_total: 0, // Será calculado abaixo
+         
+         // Detalhe Provisões
+         prov_ferias: provFerias,
+         prov_terco: provTerco,
+         prov_13: prov13,
+         prov_encargos: encargosProv,
+
+         bruto_ferias: 0,
+         bruto_13_1: 0,
+         bruto_13_2: 0,
+         obs: ''
+      };
+
+      let valorLiquidoParaPagarHoje = 0;
+
+      // Férias vs Normal
+      const isVacationMonth = parseInt(vacationMonth) === entry.id;
+      if (isVacationMonth) {
+        eventosCaixa.push("Pagto. Férias");
+        const baseFerias = brutoComExtras; 
+        const umTerco = baseFerias / 3;
+        const brutoFerias = baseFerias + umTerco;
+        
+        const inssFerias = calculateINSS(brutoFerias, entry.dateRef);
+        const irrfFerias = calculateIRRF(brutoFerias - inssFerias - (dependentes * deducaoDep), entry.dateRef);
+        
+        const liquidoFerias = brutoFerias - inssFerias - irrfFerias;
+        liquidoRecebidoElaCLT += liquidoFerias;
+        valorLiquidoParaPagarHoje = liquidoFerias;
+
+        // Na DAE de férias, entra o encargo sobre as férias
+        const encargosFerias = brutoFerias * 0.20;
+        fluxoCaixaEmpregador += (brutoFerias + encargosFerias);
+        
+        audit.bruto_ferias = brutoFerias;
+        audit.dae_inss_patr = brutoFerias * 0.08;
+        audit.dae_fgts = brutoFerias * 0.08;
+        audit.dae_seguro = brutoFerias * 0.008;
+        audit.dae_multa = brutoFerias * 0.032;
+        audit.inss_seg = inssFerias;
+        audit.irrf_seg = irrfFerias;
+        audit.obs = 'Férias: Salário substituído por Férias Líquidas';
+      } else {
+        const liquidoMes = brutoComExtras - inssSegurado - irrfSegurado;
+        liquidoRecebidoElaCLT += liquidoMes;
+        valorLiquidoParaPagarHoje = entry.baseNet;
+        fluxoCaixaEmpregador += (brutoComExtras + totalEncargosPatrao);
+      }
+
+      // 13º Salário
+      if (entry.id === 10) { // Nov
+        eventosCaixa.push("1ª Parc 13º");
+        const primeiraParc = brutoComExtras / 2;
+        liquidoRecebidoElaCLT += primeiraParc;
+        valorLiquidoParaPagarHoje += primeiraParc;
+        
+        // DAE Nov: FGTS sobre 1ª parc
+        const fgts13 = primeiraParc * 0.08;
+        const multa13 = primeiraParc * 0.032;
+        
+        fluxoCaixaEmpregador += (primeiraParc + fgts13 + multa13);
+        audit.dae_fgts += fgts13;
+        audit.dae_multa += multa13;
+        audit.bruto_13_1 = primeiraParc;
+      }
+      if (entry.id === 11) { // Dez
+        eventosCaixa.push("2ª Parc 13º");
+        const bruto13Total = brutoComExtras;
+        const primeiraParcJaPaga = brutoComExtras / 2;
+        
+        const inss13 = calculateINSS(bruto13Total, entry.dateRef);
+        const irrf13 = calculateIRRF(bruto13Total - inss13 - (dependentes * deducaoDep), entry.dateRef);
+        const segundaParcLiquida = bruto13Total - primeiraParcJaPaga - inss13 - irrf13;
+        
+        liquidoRecebidoElaCLT += segundaParcLiquida;
+        valorLiquidoParaPagarHoje += segundaParcLiquida;
+
+        // DAE Dez: INSS Patr (Total) + FGTS (2ª Parc) + INSS Seg + IRRF Seg
+        const inssPatr13 = bruto13Total * 0.08;
+        const seguro13 = bruto13Total * 0.008;
+        const fgts13 = (bruto13Total / 2) * 0.08;
+        const multa13 = (bruto13Total / 2) * 0.032;
+
+        fluxoCaixaEmpregador += (segundaParcLiquida + inss13 + irrf13 + inssPatr13 + seguro13 + fgts13 + multa13);
+        
+        audit.dae_inss_patr += inssPatr13;
+        audit.dae_seguro += seguro13;
+        audit.dae_fgts += fgts13;
+        audit.dae_multa += multa13;
+        // Somar impostos do 13o para exibir na DAE total
+        audit.inss_seg += inss13;
+        audit.irrf_seg += irrf13;
+      }
+
+      // CÁLCULO FINAL DA GUIA DAE (BOLETO)
+      // O boleto é a soma de todos os encargos do patrão + os descontos feitos no salário dela
+      audit.dae_total = audit.dae_inss_patr + audit.dae_fgts + audit.dae_seguro + audit.dae_multa + audit.inss_seg + audit.irrf_seg;
+
+      // 4. Bônus
+      const economiaMensal = custoCompetenciaTotal - entry.baseNet; 
+      const bonusGeradoMes = economiaMensal / 2;
+      accumulatedBonus += bonusGeradoMes;
+
+      let bonusPagoNesteMes = 0;
+      if (entry.id === 11) {
+        eventosCaixa.push("Bônus Anual");
+        bonusPagoNesteMes = accumulatedBonus;
+        valorLiquidoParaPagarHoje += accumulatedBonus;
+      }
+
+      valorLiquidoParaPagarHoje += entry.adjustments;
+      const saldoDevedor = valorLiquidoParaPagarHoje - entry.advances;
+
+      processedData.push({
+        ...entry,
+        brutoCalc: brutoComExtras,
+        audit,
+        custoCompetenciaTotal,
+        fluxoCaixaEmpregador,
+        eventosCaixa,
+        bonusGeradoMes,
+        accumulatedBonusState: accumulatedBonus,
+        bonusPagoNesteMes,
+        totalPagarAcordo: valorLiquidoParaPagarHoje, 
+        saldoDevedor,
+        liquidoRecebidoElaCLT
+      });
+    }
+
+    const totalCaixaCLT = processedData.reduce((acc, curr) => acc + curr.fluxoCaixaEmpregador, 0);
+    const totalCaixaAcordo = processedData.reduce((acc, curr) => acc + curr.totalPagarAcordo, 0);
+    const totalEconomiaReal = totalCaixaCLT - totalCaixaAcordo;
+
+    return { data: processedData, totalCaixaCLT, totalCaixaAcordo, totalEconomiaReal };
+  }, [currentLedger, dependentes, vacationMonth]);
+
+  // --- ACTIONS ---
+  const updateEntry = (index, field, value) => {
+    setLedgersByYear(prev => {
+      const yearData = [...prev[currentYear]];
+      yearData[index] = { ...yearData[index], [field]: value };
+      return { ...prev, [currentYear]: yearData };
+    });
+  };
+
+  const applyGlobalBase = () => {
+    setLedgersByYear(prev => {
+      const yearData = prev[currentYear].map(m => ({ ...m, baseNet: globalValue }));
+      return { ...prev, [currentYear]: yearData };
+    });
+  };
+
+  const toggleExpand = (id) => {
+    setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const markAsPaid = (index) => {
+    setLedgersByYear(prev => {
+      const yearData = [...prev[currentYear]];
+      const entry = yearData[index];
+      const newStatus = entry.status === 'paid' ? 'pending' : 'paid';
+      const newDate = (newStatus === 'paid' && !entry.paymentDate) 
+        ? new Date().toISOString().split('T')[0] 
+        : entry.paymentDate;
+        
+      yearData[index] = { ...entry, status: newStatus, paymentDate: newDate };
+      return { ...prev, [currentYear]: yearData };
+    });
+  };
+
+  const handleYearChange = (newYear) => {
+    setCurrentYear(parseInt(newYear));
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 pb-24">
+      {/* Header */}
+      <div className="bg-slate-900 text-white sticky top-0 z-30 shadow-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-600 p-1.5 rounded-md">
+              <Building2 size={18} className="text-white" />
+            </div>
+            <span className="font-bold tracking-tight">SIS.DOMÉSTICA 2.0</span>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <div className="flex items-center bg-slate-800 rounded-lg p-0.5 border border-slate-700">
+               <button onClick={() => handleYearChange(currentYear - 1)} className="px-2 py-1 hover:bg-slate-700 rounded text-slate-400">
+                 <ChevronDown className="rotate-90" size={16}/>
+               </button>
+               <span className="px-3 py-1 font-mono font-bold text-emerald-400">{currentYear}</span>
+               <button onClick={() => handleYearChange(currentYear + 1)} className="px-2 py-1 hover:bg-slate-700 rounded text-slate-400">
+                 <ChevronRight className="rotate-90" size={16}/>
+               </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Painel de Controle */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+            <div className="col-span-1 md:col-span-1">
+              <label className="block text-xs font-semibold text-slate-500 mb-1">Líquido Acordado (Massa)</label>
+              <div className="flex">
+                <input type="number" value={globalValue} onChange={(e) => setGlobalValue(parseFloat(e.target.value))} className="w-full rounded-l-lg border-y border-l border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
+                <button onClick={applyGlobalBase} className="bg-blue-600 text-white px-3 py-2 rounded-r-lg hover:bg-blue-700 text-xs font-bold">Aplicar</button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 mb-1">Dependentes (IRRF)</label>
+              <input type="number" min="0" value={dependentes} onChange={(e) => setDependentes(parseInt(e.target.value) || 0)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 outline-none" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 mb-1">Simular Mês de Férias</label>
+              <select value={vacationMonth} onChange={(e) => setVacationMonth(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 outline-none bg-white">
+                <option value="none">-- Selecionar --</option>
+                {currentLedger.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+              </select>
+            </div>
+            <div className="flex justify-end pb-1">
+              <div className="bg-slate-100 p-1 rounded-lg flex text-xs font-medium">
+                <button onClick={() => setViewMode('caixa')} className={`px-3 py-1.5 rounded-md transition-all ${viewMode === 'caixa' ? 'bg-white shadow text-blue-700 font-bold' : 'text-slate-500'}`}>Gestão (Caixa)</button>
+                <button onClick={() => setViewMode('competencia')} className={`px-3 py-1.5 rounded-md transition-all ${viewMode === 'competencia' ? 'bg-white shadow text-blue-700 font-bold' : 'text-slate-500'}`}>Custos (Competência)</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Big Numbers */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+             <span className="text-xs font-bold text-slate-400 uppercase">Custo Total Anual (Acordo)</span>
+             <h3 className="text-3xl font-bold text-indigo-700 mt-1">{formatCurrency(calculation.totalCaixaAcordo)}</h3>
+           </div>
+           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+             <span className="text-xs font-bold text-slate-400 uppercase">Custo CLT (Referência)</span>
+             <h3 className="text-3xl font-bold text-slate-700 mt-1">{formatCurrency(calculation.totalCaixaCLT)}</h3>
+           </div>
+           <div className="bg-emerald-50 p-6 rounded-2xl border border-emerald-100 shadow-sm">
+             <span className="text-xs font-bold text-emerald-600 uppercase">Economia Retida (Líquida)</span>
+             <h3 className="text-3xl font-bold text-emerald-700 mt-1">{formatCurrency(calculation.totalEconomiaReal)}</h3>
+             <p className="text-xs text-emerald-600/70 mt-2">Você + Bônus Ela</p>
+           </div>
+        </div>
+
+        {/* --- TABELA DE GESTÃO --- */}
+        <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+            <h3 className="font-bold text-slate-700 flex items-center gap-2">
+              <Wallet className="text-blue-600" size={20}/>
+              {viewMode === 'caixa' ? `Fluxo de Caixa ${currentYear}` : `Custos por Competência ${currentYear}`}
+            </h3>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead>
+                <tr className="bg-white text-slate-500 font-bold uppercase text-[10px] tracking-wider border-b border-slate-200">
+                  <th className="px-4 py-4 w-10 text-center">Ver</th>
+                  <th className="px-4 py-4 min-w-[120px]">Mês / Evento</th>
+                  <th className="px-4 py-4 text-center w-20">Feriado?</th>
+                  
+                  {viewMode === 'caixa' ? (
+                    <>
+                      <th className="px-4 py-4 text-right text-indigo-600 bg-indigo-50/20">Acordo Base (Edit)</th>
+                      <th className="px-4 py-4 text-right text-emerald-600 bg-emerald-50/20 border-l border-white">Bônus Acum.</th>
+                      <th className="px-4 py-4 text-right text-slate-500 w-28">Ajustes (+/-)</th>
+                      <th className="px-4 py-4 text-right text-orange-600 w-28">Adiantamentos</th>
+                      <th className="px-4 py-4 text-right font-extrabold text-slate-800 bg-slate-50 border-x border-slate-100">A Pagar (Final)</th>
+                      <th className="px-4 py-4 w-32">Data Pagto</th>
+                      <th className="px-4 py-4 text-center w-24">Status</th>
+                    </>
+                  ) : (
+                    <>
+                      <th className="px-4 py-4 text-right text-slate-500">Bruto Ref.</th>
+                      <th className="px-4 py-4 text-right text-red-500">Impostos (Guia)</th>
+                      <th className="px-4 py-4 text-right text-orange-500 bg-orange-50/20">Provisões</th>
+                      <th className="px-4 py-4 text-right font-extrabold text-slate-700 bg-slate-50 border-x border-slate-100">Custo Total</th>
+                      <th className="px-4 py-4 text-right text-emerald-600">Econ. Mensal</th>
+                    </>
+                  )}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {calculation.data.map((row, idx) => {
+                  const isExpanded = expandedRows[row.id];
+                  
+                  return (
+                    <React.Fragment key={row.id}>
+                      <tr className={`hover:bg-blue-50/30 transition-colors ${isExpanded ? 'bg-blue-50/30' : ''}`}>
+                        <td className="px-4 py-4 text-center">
+                          <button onClick={() => toggleExpand(row.id)} className="p-1 rounded-md hover:bg-blue-100 text-blue-600 transition-colors">
+                            {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                          </button>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="font-bold text-slate-700 capitalize">{row.name}</div>
+                          <div className="flex flex-col gap-1 mt-1">
+                            {row.eventosCaixa.map(evt => (
+                              <span key={evt} className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-100 text-purple-700 w-fit">
+                                {evt}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                           <input type="checkbox" checked={row.workedHolidays} onChange={(e) => updateEntry(idx, 'workedHolidays', e.target.checked)} className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300"/>
+                        </td>
+
+                        {viewMode === 'caixa' ? (
+                          <>
+                            <td className="px-4 py-4 text-right font-medium text-indigo-600 bg-indigo-50/20">
+                              <input type="number" value={row.baseNet} onChange={(e) => updateEntry(idx, 'baseNet', parseFloat(e.target.value) || 0)} className="w-full text-right bg-transparent border-b border-dashed border-indigo-300 hover:border-indigo-500 focus:border-indigo-700 outline-none text-indigo-700 font-bold text-xs py-1" />
+                            </td>
+                            <td className="px-4 py-4 text-right text-emerald-600 bg-emerald-50/20 border-l border-white text-xs">
+                              <div className="flex flex-col items-end">
+                                <span className="opacity-70 text-[10px]">Pote: {formatCurrency(row.accumulatedBonusState)}</span>
+                                {row.bonusPagoNesteMes > 0 && <span className="font-bold bg-emerald-100 px-1 rounded text-emerald-800">PG: {formatCurrency(row.bonusPagoNesteMes)}</span>}
+                              </div>
+                            </td>
+                            <td className="px-4 py-4 text-right">
+                              <div className="relative group">
+                                <input type="number" value={row.adjustments} onChange={(e) => updateEntry(idx, 'adjustments', parseFloat(e.target.value) || 0)} className="w-full text-right text-slate-600 text-xs border border-transparent hover:border-slate-300 rounded p-1 bg-transparent hover:bg-white focus:bg-white focus:ring-1 focus:ring-blue-500 transition-all" placeholder="0,00" />
+                                {row.adjustments !== 0 && <PenLine size={10} className="absolute left-0 top-2 text-slate-300"/>}
+                              </div>
+                            </td>
+                            <td className="px-4 py-4 text-right">
+                              <input type="number" value={row.advances} onChange={(e) => updateEntry(idx, 'advances', parseFloat(e.target.value) || 0)} className="w-full text-right text-orange-700 text-xs border border-transparent hover:border-orange-200 rounded p-1 bg-orange-50/30 hover:bg-white focus:bg-white focus:ring-1 focus:ring-orange-500 transition-all"/>
+                            </td>
+                            <td className={`px-4 py-4 text-right font-extrabold text-sm border-x border-slate-100 ${row.totalPagarAcordo > row.baseNet * 1.5 ? 'bg-amber-50 text-amber-800' : 'bg-slate-50 text-slate-800'}`}>
+                              {formatCurrency(row.saldoDevedor)}
+                            </td>
+                            <td className="px-4 py-4">
+                              <input type="date" value={row.paymentDate} onChange={(e) => updateEntry(idx, 'paymentDate', e.target.value)} className="w-full text-[10px] text-slate-500 bg-transparent border-none focus:ring-0 p-0"/>
+                            </td>
+                            <td className="px-4 py-4 text-center">
+                              <button onClick={() => markAsPaid(idx)} className={`flex items-center justify-center gap-1 px-2 py-1.5 rounded-md text-[10px] font-bold uppercase w-full transition-all ${row.status === 'paid' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200 hover:bg-slate-200'}`}>
+                                {row.status === 'paid' ? <CheckCircle size={12}/> : <Circle size={12}/>}
+                                {row.status === 'paid' ? 'Pago' : 'Pend.'}
+                              </button>
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td className="px-4 py-4 text-right text-slate-500 text-xs">{formatCurrency(row.brutoCalc)}</td>
+                            <td className="px-4 py-4 text-right text-red-500 text-xs">{formatCurrency(row.audit.dae_total)}</td>
+                            <td className="px-4 py-4 text-right text-orange-500 text-xs bg-orange-50/20">{formatCurrency(row.audit.prov_ferias + row.audit.prov_13)}</td>
+                            <td className="px-4 py-4 text-right font-extrabold text-slate-700 bg-slate-50 border-x border-slate-100 text-sm">{formatCurrency(row.custoCompetenciaTotal)}</td>
+                            <td className="px-4 py-4 text-right text-emerald-600 text-xs font-bold">{formatCurrency(row.bonusGeradoMes)}</td>
+                          </>
+                        )}
+                      </tr>
+
+                      {/* DETALHAMENTO DINÂMICO (EXPANDIDO) */}
+                      {isExpanded && (
+                        <tr className="bg-slate-50/80 shadow-inner">
+                          <td colSpan={viewMode === 'caixa' ? 10 : 8} className="p-4">
+                            <div className="bg-white rounded-lg border border-slate-200 p-4 grid grid-cols-1 md:grid-cols-3 gap-8 text-xs">
+                              
+                              {viewMode === 'caixa' ? (
+                                <>
+                                  {/* PAINEL CAIXA - COLUNA 1: DAE */}
+                                  <div className="space-y-2">
+                                    <h4 className="font-bold text-slate-800 border-b border-slate-100 pb-1 mb-2 flex items-center gap-1">
+                                      <Receipt size={12} className="text-purple-600"/> Raio-X da Guia DAE (Boleto)
+                                    </h4>
+                                    <div className="text-[10px] text-slate-400 mb-2">Composição exata do valor a pagar no eSocial</div>
+                                    <div className="flex justify-between text-purple-700"><span>(+) INSS Patronal (8%):</span><span>{formatCurrency(row.audit.dae_inss_patr)}</span></div>
+                                    <div className="flex justify-between text-purple-700"><span>(+) FGTS (8%):</span><span>{formatCurrency(row.audit.dae_fgts)}</span></div>
+                                    <div className="flex justify-between text-purple-700"><span>(+) Seguro (0.8%):</span><span>{formatCurrency(row.audit.dae_seguro)}</span></div>
+                                    <div className="flex justify-between text-purple-700"><span>(+) Multa (3.2%):</span><span>{formatCurrency(row.audit.dae_multa)}</span></div>
+                                    <div className="my-1 border-t border-dashed border-slate-200"></div>
+                                    <div className="flex justify-between text-red-600"><span>(+) INSS Empregado (Retido):</span><span>{formatCurrency(row.audit.inss_seg)}</span></div>
+                                    <div className="flex justify-between text-red-600"><span>(+) IRRF Empregado (Retido):</span><span>{formatCurrency(row.audit.irrf_seg)}</span></div>
+                                    <div className="flex justify-between font-bold pt-2 border-t border-slate-100 mt-2 bg-purple-50 p-1 rounded">
+                                      <span>= Valor Total da Guia:</span>
+                                      <span>{formatCurrency(row.audit.dae_total)}</span>
+                                    </div>
+                                  </div>
+
+                                  {/* PAINEL CAIXA - COLUNA 2: PAGAMENTO */}
+                                  <div className="space-y-2 border-l border-slate-100 pl-4">
+                                     <h4 className="font-bold text-slate-800 border-b border-slate-100 pb-1 mb-2">Composição do Pagamento</h4>
+                                     <div className="flex justify-between"><span>Líquido Base:</span><span className="font-bold">{formatCurrency(row.baseNet)}</span></div>
+                                     {row.eventosCaixa.length > 0 && (
+                                        <div className="bg-blue-50 p-2 rounded text-[10px] space-y-1">
+                                          {row.eventosCaixa.map(evt => <div key={evt} className="font-bold text-blue-700">• {evt}</div>)}
+                                          {row.id === 10 && <div className="flex justify-between"><span>Valor 1ª Parc 13º:</span><span>{formatCurrency(row.audit.bruto_13_1)}</span></div>}
+                                          {row.id === 11 && <div className="flex justify-between"><span>Valor 2ª Parc 13º:</span><span>{formatCurrency(row.liquidoRecebidoElaCLT - (row.brutoCalc - row.audit.inss_seg - row.audit.irrf_seg))}</span></div>}
+                                        </div>
+                                     )}
+                                     <div className="flex justify-between border-t border-slate-100 pt-1"><span>Ajustes Manuais:</span><span>{formatCurrency(row.adjustments)}</span></div>
+                                     <div className="flex justify-between text-lg font-bold text-slate-900 mt-2"><span>Total a Pagar:</span><span>{formatCurrency(row.totalPagarAcordo)}</span></div>
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  {/* PAINEL COMPETÊNCIA - COLUNA 1: PROVISÕES */}
+                                  <div className="space-y-2">
+                                    <h4 className="font-bold text-slate-800 border-b border-slate-100 pb-1 mb-2 flex items-center gap-1">
+                                      <PiggyBank size={12} className="text-orange-500"/> Detalhe das Provisões
+                                    </h4>
+                                    <div className="text-[10px] text-slate-400 mb-2">Valores mensais "invisíveis" (Passivo Trabalhista)</div>
+                                    <div className="flex justify-between text-orange-600"><span>(+) Férias (1/12):</span><span>{formatCurrency(row.audit.prov_ferias)}</span></div>
+                                    <div className="flex justify-between text-orange-600"><span>(+) 1/3 Férias (1/12):</span><span>{formatCurrency(row.audit.prov_terco)}</span></div>
+                                    <div className="flex justify-between text-orange-600"><span>(+) 13º Salário (1/12):</span><span>{formatCurrency(row.audit.prov_13)}</span></div>
+                                    <div className="flex justify-between text-purple-600"><span>(+) Encargos s/ Prov. (20%):</span><span>{formatCurrency(row.audit.prov_encargos)}</span></div>
+                                    <div className="flex justify-between font-bold pt-2 border-t border-slate-100 mt-2 bg-orange-50 p-1 rounded">
+                                      <span>= Custo Oculto Mensal:</span>
+                                      <span>{formatCurrency(row.audit.prov_ferias + row.audit.prov_terco + row.audit.prov_13 + row.audit.prov_encargos)}</span>
+                                    </div>
+                                  </div>
+
+                                  {/* PAINEL COMPETÊNCIA - COLUNA 2: CUSTO TOTAL */}
+                                  <div className="space-y-2 border-l border-slate-100 pl-4">
+                                     <h4 className="font-bold text-slate-800 border-b border-slate-100 pb-1 mb-2">Custo Empresa Total</h4>
+                                     <div className="flex justify-between"><span>Salário Bruto:</span><span>{formatCurrency(row.brutoCalc)}</span></div>
+                                     <div className="flex justify-between"><span>Encargos Imediatos (DAE):</span><span>{formatCurrency(row.audit.dae_inss_patr + row.audit.dae_fgts + row.audit.dae_seguro + row.audit.dae_multa)}</span></div>
+                                     <div className="flex justify-between text-orange-600 font-bold"><span>Provisões Futuras:</span><span>{formatCurrency(row.audit.prov_ferias + row.audit.prov_terco + row.audit.prov_13 + row.audit.prov_encargos)}</span></div>
+                                     <div className="flex justify-between font-bold text-lg text-slate-900 border-t border-slate-200 pt-2 mt-2">
+                                       <span>Total Competência:</span>
+                                       <span>{formatCurrency(row.custoCompetenciaTotal)}</span>
+                                     </div>
+                                  </div>
+                                </>
+                              )}
+
+                              {/* COLUNA 3: COMUM (BÔNUS) */}
+                              <div className="space-y-2 border-l border-slate-100 pl-4 bg-emerald-50/30 -m-4 p-4 rounded-r-lg">
+                                <h4 className="font-bold text-emerald-800 border-b border-emerald-100 pb-1 mb-2">Memória do Bônus</h4>
+                                <div className="flex justify-between text-xs"><span>Custo Legal Total:</span><span>{formatCurrency(row.custoCompetenciaTotal)}</span></div>
+                                <div className="flex justify-between text-xs"><span>(-) Líquido Pago:</span><span>{formatCurrency(row.baseNet)}</span></div>
+                                <div className="flex justify-between font-bold text-emerald-600 mt-2"><span>= Economia Gerada:</span><span>{formatCurrency(row.custoCompetenciaTotal - row.baseNet)}</span></div>
+                                <div className="flex justify-between font-bold text-emerald-800 bg-emerald-100 p-1 rounded mt-1"><span>Bônus (50%):</span><span>{formatCurrency(row.bonusGeradoMes)}</span></div>
+                                <div className="text-[10px] text-emerald-600 mt-2 text-center italic">Este valor vai para o pote anual</div>
+                              </div>
+
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <div className="bg-slate-50 p-3 text-[10px] text-slate-400 text-center border-t border-slate-200">
+             Os dados são armazenados temporariamente por Ano. Recarregar a página reinicia os valores.
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
