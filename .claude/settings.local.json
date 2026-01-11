@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm test)",
+      "Bash(npx vitest:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm run:*)",
+      "Bash(python analise_bonus.py:*)"
+    ]
+  }
+}
