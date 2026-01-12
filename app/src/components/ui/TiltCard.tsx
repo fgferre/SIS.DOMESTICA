@@ -74,7 +74,7 @@ export function TiltCard({ children, className, gradient }: TiltCardProps) {
           className="absolute inset-0 pointer-events-none z-20"
           style={{
             background: `radial-gradient(circle at ${shineX}% ${shineY}%, rgba(255,255,255,0.6) 0%, transparent 60%)`,
-            opacity: useTransform(mouseX, v => (Math.abs(v) > 0.1 ? 0.3 : 0)),
+            opacity: useTransform(mouseX, (v: number) => (Math.abs(v) > 0.1 ? 0.3 : 0)),
           }}
         />
 
