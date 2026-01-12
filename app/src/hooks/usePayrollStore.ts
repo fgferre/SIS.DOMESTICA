@@ -48,11 +48,9 @@ interface PayrollState {
 const INITIAL_VERSION = 5;
 
 const round2 = (n: number) => Number(n.toFixed(2));
-const newId = () =>
-  (globalThis.crypto as any)?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+const newId = () => (globalThis.crypto as any)?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
 
-const monthKey = (year: number, month: number) =>
-  `${year}-${String(month).padStart(2, '0')}-01`;
+const monthKey = (year: number, month: number) => `${year}-${String(month).padStart(2, '0')}-01`;
 
 const sortSalaryEvents = (events: SalaryEvent[]) =>
   [...events].sort((a, b) => a.effectiveMonth.localeCompare(b.effectiveMonth));
@@ -183,7 +181,9 @@ const recalcEntry = (
     };
 
     // Mantém a referência DAE do 13º (impacta só auditoria)
-    dae.totalGuide = round2(dae.totalGuide + fgts13thRef + inssPatr13th + sat13th + res13th.inss + res13th.irrf);
+    dae.totalGuide = round2(
+      dae.totalGuide + fgts13thRef + inssPatr13th + sat13th + res13th.inss + res13th.irrf
+    );
     dae.totalEmployer = round2(dae.totalEmployer + fgts13thRef + inssPatr13th + sat13th);
     dae.inssPatronal = round2(dae.inssPatronal + inssPatr13th);
     dae.sat = round2(dae.sat + sat13th);
@@ -355,7 +355,12 @@ export const usePayrollStore = create<PayrollState>()(
           if (state.years[year]) return state; // Already exists
 
           const newYearData = createInitialYearData();
-          newYearData.ledger = recalcLedgerForYear(newYearData, year, state.employee, state.salaryEvents);
+          newYearData.ledger = recalcLedgerForYear(
+            newYearData,
+            year,
+            state.employee,
+            state.salaryEvents
+          );
 
           return {
             years: {
@@ -381,17 +386,17 @@ export const usePayrollStore = create<PayrollState>()(
                   ev.id === existing.id ? { ...ev, targetNet } : ev
                 );
               }
-              return [
-                ...state.salaryEvents,
-                { id: newId(), effectiveMonth: effective, targetNet },
-              ];
+              return [...state.salaryEvents, { id: newId(), effectiveMonth: effective, targetNet }];
             })()
           );
 
           const newYears: PayrollState['years'] = {};
           for (const [yKey, yData] of Object.entries(state.years)) {
             const y = Number(yKey);
-            newYears[y] = { ...yData, ledger: recalcLedgerForYear(yData, y, state.employee, salaryEvents) };
+            newYears[y] = {
+              ...yData,
+              ledger: recalcLedgerForYear(yData, y, state.employee, salaryEvents),
+            };
           }
 
           return {
@@ -479,7 +484,10 @@ export const usePayrollStore = create<PayrollState>()(
 
           const enable = !newLedger[idx].isVacation;
           for (let i = 0; i < newLedger.length; i++) {
-            newLedger[i] = { ...newLedger[i], isVacation: i === idx ? enable : enable ? false : newLedger[i].isVacation };
+            newLedger[i] = {
+              ...newLedger[i],
+              isVacation: i === idx ? enable : enable ? false : newLedger[i].isVacation,
+            };
           }
 
           return {
@@ -594,7 +602,10 @@ export const usePayrollStore = create<PayrollState>()(
           const newYears: PayrollState['years'] = {};
           for (const [yKey, yData] of Object.entries(state.years)) {
             const y = Number(yKey);
-            newYears[y] = { ...yData, ledger: recalcLedgerForYear(yData, y, employee, state.salaryEvents) };
+            newYears[y] = {
+              ...yData,
+              ledger: recalcLedgerForYear(yData, y, employee, state.salaryEvents),
+            };
           }
 
           return { employee, years: newYears };
@@ -612,7 +623,10 @@ export const usePayrollStore = create<PayrollState>()(
           const newYears: PayrollState['years'] = {};
           for (const [yKey, yData] of Object.entries(state.years)) {
             const y = Number(yKey);
-            newYears[y] = { ...yData, ledger: recalcLedgerForYear(yData, y, state.employee, salaryEvents) };
+            newYears[y] = {
+              ...yData,
+              ledger: recalcLedgerForYear(yData, y, state.employee, salaryEvents),
+            };
           }
 
           return { salaryEvents, years: newYears };
@@ -627,7 +641,10 @@ export const usePayrollStore = create<PayrollState>()(
           const newYears: PayrollState['years'] = {};
           for (const [yKey, yData] of Object.entries(state.years)) {
             const y = Number(yKey);
-            newYears[y] = { ...yData, ledger: recalcLedgerForYear(yData, y, state.employee, salaryEvents) };
+            newYears[y] = {
+              ...yData,
+              ledger: recalcLedgerForYear(yData, y, state.employee, salaryEvents),
+            };
           }
 
           return { salaryEvents, years: newYears };
@@ -714,13 +731,17 @@ export const usePayrollStore = create<PayrollState>()(
                 if (entry.isInEmployment && entry.targetNetProrated > 0) {
                   vacationAccruedNet = round2(vacationAccruedNet + entry.targetNetProrated / 12);
                   oneThirdAccruedNet = round2(oneThirdAccruedNet + entry.targetNetProrated / 36);
-                  thirteenthAccruedNetYear = round2(thirteenthAccruedNetYear + entry.targetNetProrated / 12);
+                  thirteenthAccruedNetYear = round2(
+                    thirteenthAccruedNetYear + entry.targetNetProrated / 12
+                  );
                 }
 
                 if (entry.payment13th) {
                   const due13th = round2(entry.payment13th.net);
                   const paid13th = entry.payment13th.type === 1 ? paid13th1 : paid13th2;
-                  thirteenthPaidNetYear = round2(thirteenthPaidNetYear + Math.min(due13th, paid13th));
+                  thirteenthPaidNetYear = round2(
+                    thirteenthPaidNetYear + Math.min(due13th, paid13th)
+                  );
                 }
 
                 // Se as férias do ano foram pagas, reinicia o período aquisitivo (modelo simplificado)
@@ -753,7 +774,9 @@ export const usePayrollStore = create<PayrollState>()(
 
                   const vacationNet = round2(vacationAccruedNet);
                   const oneThirdNet = round2(oneThirdAccruedNet);
-                  const thirteenthNet = round2(Math.max(0, thirteenthAccruedNetYear - thirteenthPaidNetYear));
+                  const thirteenthNet = round2(
+                    Math.max(0, thirteenthAccruedNetYear - thirteenthPaidNetYear)
+                  );
                   terminationEntitlements = { vacationNet, oneThirdNet, thirteenthNet };
                   terminationEntitlementsNet = round2(vacationNet + oneThirdNet + thirteenthNet);
                 }
@@ -784,10 +807,8 @@ export const usePayrollStore = create<PayrollState>()(
 
                 const thirteenthNet = round2(entry.payment13th?.net || 0);
                 const salaryDue = round2(Math.max(0, toPayBase - thirteenthNet));
-                const thirteenth1Due =
-                  entry.payment13th?.type === 1 ? thirteenthNet : 0;
-                const thirteenth2Due =
-                  entry.payment13th?.type === 2 ? thirteenthNet : 0;
+                const thirteenth1Due = entry.payment13th?.type === 1 ? thirteenthNet : 0;
+                const thirteenth2Due = entry.payment13th?.type === 2 ? thirteenthNet : 0;
 
                 const bonusDueForStatus = round2(bonusPayout);
                 const terminationFineDue = round2(terminationFine);
@@ -902,8 +923,9 @@ export const usePayrollStore = create<PayrollState>()(
         const rootLooksLikeYears =
           !persistedState.years &&
           Object.keys(persistedState).some(k => /^\d{4}$/.test(k)) &&
-          typeof persistedState[Object.keys(persistedState).find(k => /^\d{4}$/.test(k)) as string] ===
-            'object';
+          typeof persistedState[
+            Object.keys(persistedState).find(k => /^\d{4}$/.test(k)) as string
+          ] === 'object';
 
         const years =
           persistedState.years && typeof persistedState.years === 'object'
@@ -1038,7 +1060,10 @@ export const usePayrollStore = create<PayrollState>()(
             ) {
               const paidAt = entry.paymentDate.slice(0, 10);
               const thirteenthNet = Number(entry?.payment13th?.net || 0);
-              const salaryAmount = Math.max(0, Number((entry.toPayBase - thirteenthNet).toFixed(2)));
+              const salaryAmount = Math.max(
+                0,
+                Number((entry.toPayBase - thirteenthNet).toFixed(2))
+              );
 
               if (salaryAmount > 0) {
                 entry.payments.push({
@@ -1125,7 +1150,7 @@ export const usePayrollStore = create<PayrollState>()(
         years: state.years,
       }), // Save these fields
       onRehydrateStorage: () => state => {
-        console.log('Storage Hydrated', state);
+        // console.log('Storage Hydrated', state);
         state?.calculateRunningBalance();
       },
     }
