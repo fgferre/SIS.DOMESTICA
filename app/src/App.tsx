@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { usePayrollStore } from '@/hooks/usePayrollStore';
+import { EmployerService } from '@/services/EmployerService';
 import { LedgerTable } from '@/components/features/LedgerTable';
 import { SummaryCards } from '@/components/features/SummaryCards';
 import {
@@ -40,6 +41,63 @@ function App() {
   const [isEmployeeModalOpen, setIsEmployeeModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+
+  // Invite state
+  const [inviteToken, setInviteToken] = useState<string | null>(null);
+  const [inviteInfo, setInviteInfo] = useState<any>(null);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [processingInvite, setProcessingInvite] = useState(false);
+
+  // Check for invite token on load
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('invite');
+    if (token) {
+      setInviteToken(token);
+      // Remove token from URL for cleaner look
+      window.history.replaceState({}, '', window.location.pathname);
+
+      // Load invite info
+      EmployerService.getInviteByToken(token)
+        .then(data => {
+          setInviteInfo(data);
+          setShowInviteModal(true);
+        })
+        .catch(err => {
+          console.error('Convite inválido:', err);
+          // Opcional: mostrar toast de erro
+        });
+    }
+  }, []);
+
+  const handleAcceptInvite = async () => {
+    if (!inviteToken) return;
+
+    if (!user) {
+      setAuthMode('signup');
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    setProcessingInvite(true);
+    try {
+      await EmployerService.acceptInvite(inviteToken);
+      // Reload page/state to refreshing list will happen automatically in Lobby
+      window.location.reload();
+    } catch (err: any) {
+      alert(err.message || 'Erro ao aceitar convite');
+    } finally {
+      setProcessingInvite(false);
+      setShowInviteModal(false);
+    }
+  };
+
+  // Se o usuário logar enquanto o modal de convite estiver aberto (vindo do fluxo de cadastro)
+  useEffect(() => {
+    if (user && inviteToken && showInviteModal && !processingInvite) {
+      handleAcceptInvite();
+    }
+  }, [user]);
 
   // Auto-save to cloud when payroll data changes
   const { status: syncStatus, hasPendingChanges } = useAutoSave(selectedEmployee?.id ?? null);
@@ -135,6 +193,61 @@ function App() {
 
       {/* Global Animated Background */}
       <AuroraBackground />
+
+      {/* Invite Acceptance Modal */}
+      {showInviteModal && inviteInfo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative bg-white rounded-xl shadow-2xl max-w-md w-full p-6 text-center">
+            <div className="mx-auto w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+              <Building2 className="h-6 w-6 text-indigo-600" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Convite para Família</h3>
+            <p className="text-gray-600 mb-6">
+              Você foi convidado para gerenciar a família{' '}
+              <strong>{inviteInfo.employers?.name}</strong>.
+            </p>
+
+            {user ? (
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowInviteModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleAcceptInvite}
+                  disabled={processingInvite}
+                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                >
+                  {processingInvite ? 'Aceitando...' : 'Aceitar Convite'}
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-100">
+                  Faça login ou crie uma conta para aceitar este convite.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowInviteModal(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleAcceptInvite}
+                    className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                  >
+                    Entrar / Cadastrar
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="relative min-h-screen font-sans text-gray-900 bg-transparent">
         {/* Header - Glass Effect */}

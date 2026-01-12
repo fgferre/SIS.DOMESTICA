@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Employer, Employee, EmployerService } from '@/services/EmployerService';
-import { Loader2, Plus, Users, Layout, User, Trash2, LogOut } from 'lucide-react';
+import { Loader2, Plus, Users, Layout, User, Trash2, LogOut, UserPlus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { InviteModal } from '@/components/invite/InviteModal';
 
 interface LobbyScreenProps {
   onSelectEmployee: (employee: Employee) => void;
@@ -30,6 +31,12 @@ export function LobbyScreen({ onSelectEmployee, onLogout }: LobbyScreenProps) {
     message: string;
     onConfirm: () => void;
   }>({ isOpen: false, type: 'employee', title: '', message: '', onConfirm: () => {} });
+
+  // Invite modal state
+  const [inviteModal, setInviteModal] = useState<{ isOpen: boolean; employer: Employer | null }>({
+    isOpen: false,
+    employer: null,
+  });
 
   useEffect(() => {
     loadEmployers();
@@ -262,6 +269,17 @@ export function LobbyScreen({ onSelectEmployee, onLogout }: LobbyScreenProps) {
                     type="button"
                     onClick={e => {
                       e.stopPropagation();
+                      setInviteModal({ isOpen: true, employer: emp });
+                    }}
+                    className="absolute bottom-3 left-3 p-1.5 text-slate-500 hover:text-indigo-400 hover:bg-indigo-400/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                    title="Convidar membro"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={e => {
+                      e.stopPropagation();
                       confirmDeleteEmployer(emp);
                     }}
                     className="absolute bottom-3 right-3 p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
@@ -420,6 +438,16 @@ export function LobbyScreen({ onSelectEmployee, onLogout }: LobbyScreenProps) {
         onConfirm={deleteModal.onConfirm}
         onCancel={() => setDeleteModal(prev => ({ ...prev, isOpen: false }))}
       />
+
+      {/* Invite Modal */}
+      {inviteModal.employer && (
+        <InviteModal
+          isOpen={inviteModal.isOpen}
+          employerId={inviteModal.employer.id}
+          employerName={inviteModal.employer.name}
+          onClose={() => setInviteModal({ isOpen: false, employer: null })}
+        />
+      )}
     </div>
   );
 }

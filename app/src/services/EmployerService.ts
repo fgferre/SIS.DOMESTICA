@@ -151,4 +151,105 @@ export const EmployerService = {
 
     if (error) throw error;
   },
+
+  // ==================== CONVITES ====================
+
+  // 9. Criar Convite
+  async createInvite(employerId: string, email: string, role: 'admin' | 'viewer' = 'admin') {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error('Não autenticado');
+
+    const { data, error } = await supabase
+      .from('invites')
+      .insert({ employer_id: employerId, email, role, created_by: user.id })
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === '23505') {
+        throw new Error('Já existe um convite pendente para este email.');
+      }
+      throw error;
+    }
+    return data;
+  },
+
+  // 10. Listar Convites de uma Família
+  async getInvitesForEmployer(employerId: string) {
+    const { data, error } = await supabase
+      .from('invites')
+      .select('*')
+      .eq('employer_id', employerId)
+      .is('accepted_at', null)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data ?? [];
+  },
+
+  // 11. Aceitar Convite (pelo token)
+  async acceptInvite(token: string) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error('Faça login para aceitar o convite.');
+
+    // Buscar convite pelo token
+    const { data: invite, error: fetchError } = await supabase
+      .from('invites')
+      .select('*')
+      .eq('token', token)
+      .is('accepted_at', null)
+      .single();
+
+    if (fetchError || !invite) {
+      throw new Error('Convite inválido ou já utilizado.');
+    }
+
+    // Adicionar usuário como membro
+    const { error: memberError } = await supabase.from('employer_members').insert({
+      employer_id: invite.employer_id,
+      user_id: user.id,
+      role: invite.role,
+    });
+
+    if (memberError) {
+      if (memberError.code === '23505') {
+        throw new Error('Você já é membro desta família.');
+      }
+      throw memberError;
+    }
+
+    // Marcar convite como aceito
+    const { error: updateError } = await supabase
+      .from('invites')
+      .update({ accepted_at: new Date().toISOString(), accepted_by: user.id })
+      .eq('id', invite.id);
+
+    if (updateError) throw updateError;
+
+    return invite;
+  },
+
+  // 12. Cancelar Convite
+  async cancelInvite(inviteId: string) {
+    const { error } = await supabase.from('invites').delete().eq('id', inviteId);
+
+    if (error) throw error;
+  },
+
+  // 13. Buscar Convite pelo Token (para exibir info antes de aceitar)
+  async getInviteByToken(token: string) {
+    const { data, error } = await supabase
+      .from('invites')
+      .select('*, employers(name)')
+      .eq('token', token)
+      .is('accepted_at', null)
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
 };

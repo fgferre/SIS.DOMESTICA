@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePayrollStore } from '@/hooks/usePayrollStore';
 import { formatCurrency, cn } from '@/utils/utils';
 import { CurrencyInput } from '@/components/ui/CurrencyInput';
@@ -23,8 +23,6 @@ export function LedgerTable() {
   const [editingPaymentsMonth, setEditingPaymentsMonth] = useState<number | null>(null);
   const [compactMode, setCompactMode] = useState(true);
   const today = new Date();
-  const hasInitializedExpansion = useRef(false);
-
   const dateOnly = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0);
   const isPast = (due: Date) => dateOnly(today).getTime() > dateOnly(due).getTime();
   const terminationDate = employee.terminationDate
@@ -34,7 +32,6 @@ export function LedgerTable() {
   const handleSalaryChange = (entry: LedgerEntry, val: number) => {
     const minWage = getTaxTableForDate(new Date(activeYear, entry.month - 1, 1)).minimumWage;
     if (val < minWage * 0.9) {
-      // Em meses pro-rata, o líquido pode ficar baixo naturalmente.
       if (entry.proRataFactor >= 1) {
         showToast('Atenção: Valor abaixo do Salário Mínimo!', 'warning');
       }
@@ -48,12 +45,10 @@ export function LedgerTable() {
     setExpandedRows(allExpanded ? [] : allMonths);
   };
 
+  // Reset expansion when switching year or employee (using CPF as proxy for ID)
   useEffect(() => {
-    if (hasInitializedExpansion.current) return;
-    if (!yearData) return;
-    setExpandedRows(allMonths);
-    hasInitializedExpansion.current = true;
-  }, [allMonths, yearData]);
+    setExpandedRows([]);
+  }, [activeYear, employee?.cpf]);
 
   if (!yearData) return <div>Carregando ano...</div>;
 
