@@ -7,6 +7,7 @@ import { EmployeeSettingsModal } from '@/components/features/EmployeeSettingsMod
 
 import { ToastProvider } from '@/components/ui/Toast';
 import { ConfettiOverlay } from '@/components/ui/ConfettiOverlay';
+import { AuroraBackground } from '@/components/ui/AuroraBackground';
 
 function App() {
   const { initializeYear, setActiveYear, activeYear, lastCelebration, clearCelebration } =
@@ -39,9 +40,13 @@ function App() {
         durationMs={1400}
         onDone={clearCelebration}
       />
-      <div className="min-h-screen bg-gray-100 font-sans text-gray-900">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-20">
+
+      {/* Global Animated Background */}
+      <AuroraBackground />
+
+      <div className="relative min-h-screen font-sans text-gray-900 bg-transparent">
+        {/* Header - Glass Effect */}
+        <header className="sticky top-0 z-20 glass border-b-0">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="bg-blue-600 p-2 rounded-lg text-white shadow-lg shadow-blue-500/30">

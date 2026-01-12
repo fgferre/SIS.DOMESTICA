@@ -1,3 +1,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  /* Glassmorphism Token System */
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-surface: rgba(255, 255, 255, 0.65);
+  --glass-highlight: rgba(255, 255, 255, 0.5);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+}
+
+@layer utilities {
+  .glass {
+    background: var(--glass-surface);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+}

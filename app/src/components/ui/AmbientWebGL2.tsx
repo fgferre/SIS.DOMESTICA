@@ -66,7 +66,8 @@ void main() {
   vec2 p = (uv - 0.5) * vec2(aspect, 1.0);
 
   vec2 m = (u_mouse - 0.5);
-  p += m * 0.25;
+  // Mouse parallax (intencionalmente visível, mas ainda discreto)
+  p += m * 0.45;
 
   float t = u_time * 0.08;
   float n = fbm(p * 2.4 + vec2(0.0, t));
@@ -80,8 +81,14 @@ void main() {
   vec3 col = mix(cB, cA, mixv);
   col = mix(col, cC, glow * 0.35);
 
+  // Mouse spotlight para evidenciar o parallax
+  float d = distance(uv, u_mouse);
+  float spot = smoothstep(0.45, 0.0, d);
+  col += spot * 0.18;
+
   float vign = smoothstep(1.15, 0.25, length(p));
   float alpha = (0.55 + 0.45 * u_boost) * vign;
+  alpha += spot * 0.12;
   outColor = vec4(col, alpha);
 }
 `;

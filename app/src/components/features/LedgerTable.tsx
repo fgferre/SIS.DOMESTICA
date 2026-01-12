@@ -12,15 +12,8 @@ import { getTaxTableForDate } from '@/core/taxTables';
 import type { LedgerEntry } from '@/types/payroll';
 
 export function LedgerTable() {
-  const {
-    years,
-    activeYear,
-    employee,
-    setTargetNet,
-    toggleVacation,
-    toggleHoliday,
-    toggle13th,
-  } = usePayrollStore();
+  const { years, activeYear, employee, setTargetNet, toggleVacation, toggleHoliday, toggle13th } =
+    usePayrollStore();
   const { showToast } = useToast();
   const yearData = years[activeYear];
 
@@ -75,7 +68,7 @@ export function LedgerTable() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
+    <div className="bg-white/70 backdrop-blur-xl rounded-xl shadow-sm border border-white/40 overflow-hidden transition-all duration-300 hover:shadow-md hover:bg-white/80">
       {editingExtrasMonth && (
         <ExtrasManager
           month={editingExtrasMonth}
@@ -92,55 +85,59 @@ export function LedgerTable() {
         />
       )}
 
-      <div className="p-4 border-b flex justify-between items-center bg-gray-50">
-        <h2 className="font-semibold text-gray-700">Demonstrativo Financeiro {activeYear}</h2>
+      <div className="p-4 border-b border-white/20 flex justify-between items-center bg-white/40">
+        <h2 className="font-semibold text-gray-800 tracking-tight">
+          Demonstrativo Financeiro {activeYear}
+        </h2>
         <div className="flex space-x-2 text-sm items-center">
           <button
             onClick={toggleExpandAll}
-            className="px-3 py-1 rounded transition-colors border border-gray-200 text-gray-600 hover:bg-gray-100"
+            className="px-3 py-1 rounded-lg transition-all border border-white/40 bg-white/50 hover:bg-white text-gray-700 shadow-sm"
           >
             {allExpanded ? 'Recolher Tudo' : 'Expandir Tudo'}
           </button>
           <button
             onClick={() => setCompactMode(v => !v)}
             className={cn(
-              'px-3 py-1 rounded transition-colors border',
+              'px-3 py-1 rounded-lg transition-all border shadow-sm',
               compactMode
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-700 font-medium hover:bg-emerald-100'
-                : 'border-gray-200 text-gray-600 hover:bg-gray-100'
+                ? 'border-emerald-200/50 bg-emerald-50/80 text-emerald-800 font-medium hover:bg-emerald-100'
+                : 'border-white/40 bg-white/50 text-gray-600 hover:bg-white'
             )}
             title="Alterna entre modo compacto e detalhado"
           >
             {compactMode ? 'Compacto' : 'Detalhado'}
           </button>
-          <button
-            onClick={() => setViewMode('caixa')}
-            className={cn(
-              'px-3 py-1 rounded transition-colors',
-              viewMode === 'caixa'
-                ? 'bg-blue-100 text-blue-700 font-medium'
-                : 'text-gray-500 hover:bg-gray-100'
-            )}
-          >
-            Visão Caixa
-          </button>
-          <button
-            onClick={() => setViewMode('competencia')}
-            className={cn(
-              'px-3 py-1 rounded transition-colors',
-              viewMode === 'competencia'
-                ? 'bg-orange-100 text-orange-700 font-medium'
-                : 'text-gray-500 hover:bg-gray-100'
-            )}
-          >
-            Visão Competência
-          </button>
+          <div className="bg-white/30 p-0.5 rounded-lg flex border border-white/30">
+            <button
+              onClick={() => setViewMode('caixa')}
+              className={cn(
+                'px-3 py-1 rounded-md transition-all text-xs font-medium',
+                viewMode === 'caixa'
+                  ? 'bg-white shadow text-blue-700'
+                  : 'text-gray-500 hover:bg-white/50'
+              )}
+            >
+              Caixa
+            </button>
+            <button
+              onClick={() => setViewMode('competencia')}
+              className={cn(
+                'px-3 py-1 rounded-md transition-all text-xs font-medium',
+                viewMode === 'competencia'
+                  ? 'bg-white shadow text-orange-700'
+                  : 'text-gray-500 hover:bg-white/50'
+              )}
+            >
+              Competência
+            </button>
+          </div>
         </div>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-gray-100 text-gray-600 font-medium border-b">
+        <table className="w-full text-sm text-left border-collapse">
+          <thead className="bg-white/50 text-gray-600 font-medium border-b border-white/20 backdrop-blur-sm sticky top-0 z-10">
             <tr>
               <th className="p-3 w-8"></th>
               <th className="p-3">Mês</th>
@@ -256,12 +253,10 @@ export function LedgerTable() {
                   dateOnly(thirteenthDueDate!).getTime();
 
               const hasCarryOverdue = entry.bonusCarryDue > 0 && !isBonusPaid;
-              const isOverdueSalary =
-                salaryDueDate && !isSalaryPaid && isPast(salaryDueDate);
+              const isOverdueSalary = salaryDueDate && !isSalaryPaid && isPast(salaryDueDate);
               const isOverdueBonus =
                 hasCarryOverdue || (bonusDueDate && !isBonusPaid && isPast(bonusDueDate));
-              const isOverdue13th =
-                thirteenthDueDate && !is13thPaid && isPast(thirteenthDueDate);
+              const isOverdue13th = thirteenthDueDate && !is13thPaid && isPast(thirteenthDueDate);
 
               const paymentDates = (entry.payments ?? [])
                 .map(p => p.paidAt)
@@ -286,8 +281,7 @@ export function LedgerTable() {
                         ? 'border-blue-200 bg-blue-50 text-blue-700'
                         : 'border-gray-200 bg-white text-gray-500';
 
-                const Icon =
-                  kind === 'salary' ? CalendarDays : kind === 'bonus' ? PiggyBank : Gift;
+                const Icon = kind === 'salary' ? CalendarDays : kind === 'bonus' ? PiggyBank : Gift;
 
                 return (
                   <span title={title} className={cn(base, cls)}>
@@ -300,7 +294,7 @@ export function LedgerTable() {
                 <React.Fragment key={entry.month}>
                   <tr
                     className={cn(
-                      'hover:bg-gray-50 transition-colors',
+                      'hover:bg-white/40 transition-colors',
                       isExpanded && 'bg-blue-50/30',
                       (isOverdueSalary || isOverdueBonus || isOverdue13th) &&
                         (compactMode ? 'border-l-4 border-red-300 bg-red-50/10' : 'bg-red-50/40')
@@ -312,20 +306,26 @@ export function LedgerTable() {
                     >
                       <ChevronRight
                         size={16}
-                        className={cn('transition-transform duration-200', isExpanded && 'rotate-90')}
+                        className={cn(
+                          'transition-transform duration-200',
+                          isExpanded && 'rotate-90'
+                        )}
                       />
                     </td>
                     <td className="p-3 font-medium capitalize text-gray-700">
                       <div className="flex items-center gap-2">
                         {getMonthName(entry.month)}
-                        {!compactMode && entry.isInEmployment && entry.proRataFactor > 0 && entry.proRataFactor < 1 && (
-                          <span
-                            className="text-[10px] bg-gray-100 text-gray-600 px-1.5 rounded-full font-bold"
-                            title={`Pró-rata ${entry.daysWorked}/30: ${formatCurrency(entry.targetNetProrated)}`}
-                          >
-                            PR {entry.daysWorked}/30
-                          </span>
-                        )}
+                        {!compactMode &&
+                          entry.isInEmployment &&
+                          entry.proRataFactor > 0 &&
+                          entry.proRataFactor < 1 && (
+                            <span
+                              className="text-[10px] bg-gray-100 text-gray-600 px-1.5 rounded-full font-bold"
+                              title={`Pró-rata ${entry.daysWorked}/30: ${formatCurrency(entry.targetNetProrated)}`}
+                            >
+                              PR {entry.daysWorked}/30
+                            </span>
+                          )}
                         {entry.variations && entry.variations.length > 0 && (
                           <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 rounded-full font-bold">
                             {entry.variations.length}
@@ -425,59 +425,59 @@ export function LedgerTable() {
                       )}
                       {!compactMode && (
                         <>
-                      {(isOverdueSalary || isOverdueBonus || isOverdue13th) && (
-                        <div className="text-[10px] text-red-600 mt-1 font-bold">ATRASADO</div>
-                      )}
-                      {salaryDueDate && !isSalaryPaid && !isOverdueSalary && (
-                        <div className="text-[10px] text-blue-600 mt-1">
-                          Salário vence {salaryDueDate.toLocaleDateString('pt-BR')}
-                        </div>
-                      )}
-                      {salaryDueDate && isOverdueSalary && (
-                        <div className="text-[10px] text-red-600 mt-1">
-                          Salário venceu {salaryDueDate.toLocaleDateString('pt-BR')}
-                        </div>
-                      )}
-                      {isSalaryLatePaid && (
-                        <div className="text-[10px] text-orange-700 mt-1 font-bold">
-                          Salário pago em atraso
-                        </div>
-                      )}
-                      {isBonusLatePaid && (
-                        <div className="text-[10px] text-orange-700 mt-1 font-bold">
-                          B“nus pago em atraso
-                        </div>
-                      )}
-                      {is13thLatePaid && (
-                        <div className="text-[10px] text-orange-700 mt-1 font-bold">
-                          13§ pago em atraso
-                        </div>
-                      )}
-                      {hasCarryOverdue && (
-                        <div className="text-[10px] text-red-600 mt-1">
-                          Bônus vencido (carry): {formatCurrency(entry.bonusCarryDue)}
-                        </div>
-                      )}
-                      {!isOverdueBonus && bonusDueDate && !isBonusPaid && (
-                        <div className="text-[10px] text-blue-600 mt-1">
-                          Bônus vence {bonusDueDate.toLocaleDateString('pt-BR')}
-                        </div>
-                      )}
-                      {isOverdueBonus && bonusDueDate && (
-                        <div className="text-[10px] text-red-600 mt-1">
-                          Bônus venceu {bonusDueDate.toLocaleDateString('pt-BR')}
-                        </div>
-                      )}
-                      {!isOverdue13th && thirteenthDueDate && !is13thPaid && (
-                        <div className="text-[10px] text-blue-600 mt-1">
-                          13º vence {thirteenthDueDate.toLocaleDateString('pt-BR')}
-                        </div>
-                      )}
-                      {isOverdue13th && thirteenthDueDate && (
-                        <div className="text-[10px] text-red-600 mt-1">
-                          13º venceu {thirteenthDueDate.toLocaleDateString('pt-BR')}
-                        </div>
-                      )}
+                          {(isOverdueSalary || isOverdueBonus || isOverdue13th) && (
+                            <div className="text-[10px] text-red-600 mt-1 font-bold">ATRASADO</div>
+                          )}
+                          {salaryDueDate && !isSalaryPaid && !isOverdueSalary && (
+                            <div className="text-[10px] text-blue-600 mt-1">
+                              Salário vence {salaryDueDate.toLocaleDateString('pt-BR')}
+                            </div>
+                          )}
+                          {salaryDueDate && isOverdueSalary && (
+                            <div className="text-[10px] text-red-600 mt-1">
+                              Salário venceu {salaryDueDate.toLocaleDateString('pt-BR')}
+                            </div>
+                          )}
+                          {isSalaryLatePaid && (
+                            <div className="text-[10px] text-orange-700 mt-1 font-bold">
+                              Salário pago em atraso
+                            </div>
+                          )}
+                          {isBonusLatePaid && (
+                            <div className="text-[10px] text-orange-700 mt-1 font-bold">
+                              B“nus pago em atraso
+                            </div>
+                          )}
+                          {is13thLatePaid && (
+                            <div className="text-[10px] text-orange-700 mt-1 font-bold">
+                              13§ pago em atraso
+                            </div>
+                          )}
+                          {hasCarryOverdue && (
+                            <div className="text-[10px] text-red-600 mt-1">
+                              Bônus vencido (carry): {formatCurrency(entry.bonusCarryDue)}
+                            </div>
+                          )}
+                          {!isOverdueBonus && bonusDueDate && !isBonusPaid && (
+                            <div className="text-[10px] text-blue-600 mt-1">
+                              Bônus vence {bonusDueDate.toLocaleDateString('pt-BR')}
+                            </div>
+                          )}
+                          {isOverdueBonus && bonusDueDate && (
+                            <div className="text-[10px] text-red-600 mt-1">
+                              Bônus venceu {bonusDueDate.toLocaleDateString('pt-BR')}
+                            </div>
+                          )}
+                          {!isOverdue13th && thirteenthDueDate && !is13thPaid && (
+                            <div className="text-[10px] text-blue-600 mt-1">
+                              13º vence {thirteenthDueDate.toLocaleDateString('pt-BR')}
+                            </div>
+                          )}
+                          {isOverdue13th && thirteenthDueDate && (
+                            <div className="text-[10px] text-red-600 mt-1">
+                              13º venceu {thirteenthDueDate.toLocaleDateString('pt-BR')}
+                            </div>
+                          )}
                         </>
                       )}
                       {lastPaymentDate && (
@@ -496,11 +496,15 @@ export function LedgerTable() {
                             className="bg-white border-blue-200 focus:border-blue-500 max-w-[100px] text-sm py-1"
                           />
                         </div>
-                        {!compactMode && entry.isInEmployment && entry.proRataFactor > 0 && entry.proRataFactor < 1 && (
-                          <div className="text-[10px] text-gray-500 font-mono tabular-nums">
-                            Pró-rata {entry.daysWorked}/30: {formatCurrency(entry.targetNetProrated)}
-                          </div>
-                        )}
+                        {!compactMode &&
+                          entry.isInEmployment &&
+                          entry.proRataFactor > 0 &&
+                          entry.proRataFactor < 1 && (
+                            <div className="text-[10px] text-gray-500 font-mono tabular-nums">
+                              Pró-rata {entry.daysWorked}/30:{' '}
+                              {formatCurrency(entry.targetNetProrated)}
+                            </div>
+                          )}
                         {!entry.isInEmployment && (
                           <div className="text-[10px] text-gray-400">Fora do contrato</div>
                         )}
@@ -545,7 +549,9 @@ export function LedgerTable() {
                               ? 'bg-purple-100 text-purple-600'
                               : 'hover:bg-gray-200 text-gray-400 hover:text-purple-500'
                           )}
-                          title={entry.workedHoliday ? 'Remover Feriado' : 'Feriado Trabalhado (+1 Dia)'}
+                          title={
+                            entry.workedHoliday ? 'Remover Feriado' : 'Feriado Trabalhado (+1 Dia)'
+                          }
                         >
                           <span className="font-bold text-xs">H</span>
                         </button>
@@ -584,21 +590,31 @@ export function LedgerTable() {
                       </div>
                     </td>
                     <td className="p-3 text-right text-gray-500 hidden md:table-cell">
-                      <span className="font-mono tabular-nums">{formatCurrency(entry.grossSalary)}</span>
+                      <span className="font-mono tabular-nums">
+                        {formatCurrency(entry.grossSalary)}
+                      </span>
                     </td>
                     <td className="p-3 text-right text-red-500 hidden sm:table-cell">
-                      <span className="font-mono tabular-nums">{formatCurrency(employeeTaxes)}</span>
+                      <span className="font-mono tabular-nums">
+                        {formatCurrency(employeeTaxes)}
+                      </span>
                     </td>
                     <td className="p-3 text-right hidden md:table-cell text-gray-600">
-                      {viewMode === 'caixa'
-                        ? <span className="font-mono tabular-nums">{formatCurrency(entry.dae)}</span>
-                        : <span className="font-mono tabular-nums">{formatCurrency(entry.provisions)}</span>}
+                      {viewMode === 'caixa' ? (
+                        <span className="font-mono tabular-nums">{formatCurrency(entry.dae)}</span>
+                      ) : (
+                        <span className="font-mono tabular-nums">
+                          {formatCurrency(entry.provisions)}
+                        </span>
+                      )}
                     </td>
                     <td className="p-3 text-right font-bold text-gray-800">
                       <span className="font-mono tabular-nums">{formatCurrency(entry.toPay)}</span>
                     </td>
                     <td className="p-3 text-right font-bold text-blue-600">
-                      <span className="font-mono tabular-nums">{formatCurrency(entry.runningBalance)}</span>
+                      <span className="font-mono tabular-nums">
+                        {formatCurrency(entry.runningBalance)}
+                      </span>
                     </td>
                   </tr>
 
