@@ -6,6 +6,7 @@
   "homepage": "https://fgferre.github.io/SIS.DOMESTICA",
   "scripts": {
     "dev": "vite",
+    "dev:host": "vite --host",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
     "build": "tsc && vite build",

@@ -1,4 +1,4 @@
-import { AuroraBackground } from '@/components/ui/AuroraBackground';
+import { SystemBackground } from '@/components/ui/SystemBackground';
 
 interface LandingScreenProps {
   onLogin: () => void;
@@ -8,7 +8,7 @@ interface LandingScreenProps {
 export function LandingScreen({ onLogin, onSignup }: LandingScreenProps) {
   return (
     <div className="relative min-h-screen text-slate-900 font-sans overflow-hidden">
-      <AuroraBackground />
+      <SystemBackground mode="hero" />
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-6 text-center">
         <h1 className="text-4xl font-bold mb-6 text-slate-900 text-shadow-sm">SIS.DOMÉSTICA</h1>
         <p className="text-xl mb-8 text-slate-700 max-w-2xl mx-auto font-medium">

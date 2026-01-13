@@ -6,9 +6,17 @@ interface TiltCardProps {
   children: React.ReactNode;
   className?: string;
   gradient?: string; // Optional border/glow gradient
+  surfaceClassName?: string;
+  contentClassName?: string;
 }
 
-export function TiltCard({ children, className, gradient }: TiltCardProps) {
+export function TiltCard({
+  children,
+  className,
+  gradient,
+  surfaceClassName,
+  contentClassName,
+}: TiltCardProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   const x = useMotionValue(0);
@@ -62,8 +70,12 @@ export function TiltCard({ children, className, gradient }: TiltCardProps) {
         className
       )}
     >
-      {/* Content Container with depth */}
-      <div className="relative z-10 h-full bg-white/70 backdrop-blur-md border border-white/40 rounded-xl overflow-hidden p-0.5">
+      <div
+        className={cn(
+          'relative z-10 h-full rounded-xl overflow-hidden',
+          surfaceClassName ?? 'glass-panel'
+        )}
+      >
         {/* Inner Shine/Gradient Border */}
         {gradient && (
           <div className={cn('absolute inset-0 opacity-20 pointer-events-none', gradient)} />
@@ -79,7 +91,14 @@ export function TiltCard({ children, className, gradient }: TiltCardProps) {
         />
 
         {/* Actual Content */}
-        <div className="relative px-4 py-4 h-full flex flex-col justify-between">{children}</div>
+        <div
+          className={cn(
+            'relative h-full flex flex-col justify-between',
+            contentClassName ?? 'px-4 py-4'
+          )}
+        >
+          {children}
+        </div>
       </div>
     </motion.div>
   );

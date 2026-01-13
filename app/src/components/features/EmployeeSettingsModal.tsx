@@ -67,22 +67,22 @@ export function EmployeeSettingsModal({ isOpen, onClose }: EmployeeSettingsModal
       <div className="space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="flex flex-col space-y-1">
-            <label className="text-sm font-medium text-gray-700">Admissão</label>
+            <label className="text-sm font-medium text-gray-200">Admissão</label>
             <input
               type="date"
               value={employee.admissionDate || ''}
               onChange={e => updateEmployee({ admissionDate: e.target.value })}
-              className="px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary border-gray-300 font-mono"
+              className="px-3 py-2 rounded-md shadow-sm bg-black/30 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary font-mono"
             />
           </div>
           <div className="flex flex-col space-y-1">
-            <label className="text-sm font-medium text-gray-700">Dependentes (IRRF)</label>
+            <label className="text-sm font-medium text-gray-200">Dependentes (IRRF)</label>
             <input
               type="number"
               min={0}
               value={employee.dependents ?? 0}
               onChange={e => updateEmployee({ dependents: Math.max(0, Number(e.target.value || 0)) })}
-              className="px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary border-gray-300 font-mono text-right"
+              className="px-3 py-2 rounded-md shadow-sm bg-black/30 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary font-mono text-right"
             />
           </div>
         </div>
@@ -103,20 +103,20 @@ export function EmployeeSettingsModal({ isOpen, onClose }: EmployeeSettingsModal
           {employee.terminationDate && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="flex flex-col space-y-1">
-                <label className="text-sm font-medium text-gray-700">Data</label>
+                <label className="text-sm font-medium text-gray-200">Data</label>
                 <input
                   type="date"
                   value={employee.terminationDate}
                   onChange={e => updateEmployee({ terminationDate: e.target.value })}
-                  className="px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary border-gray-300 font-mono"
+                  className="px-3 py-2 rounded-md shadow-sm bg-black/30 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary font-mono"
                 />
               </div>
               <div className="flex flex-col space-y-1">
-                <label className="text-sm font-medium text-gray-700">Tipo</label>
+                <label className="text-sm font-medium text-gray-200">Tipo</label>
                 <select
                   value={employee.terminationType || 'employer'}
                   onChange={e => onSetTerminationType(e.target.value as TerminationType)}
-                  className="px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary border-gray-300"
+                  className="px-3 py-2 rounded-md shadow-sm bg-black/30 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary"
                 >
                   <option value="employer">Demissão pelo empregador</option>
                   <option value="employee">Pedido do empregado</option>
@@ -138,7 +138,7 @@ export function EmployeeSettingsModal({ isOpen, onClose }: EmployeeSettingsModal
 
           <div className="rounded-lg border border-gray-200 overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-gray-600">
+              <thead className="bg-white/5 text-gray-400">
                 <tr>
                   <th className="text-left p-2">Mês</th>
                   <th className="text-right p-2">Líquido</th>
@@ -176,12 +176,12 @@ export function EmployeeSettingsModal({ isOpen, onClose }: EmployeeSettingsModal
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
             <div className="flex flex-col space-y-1">
-              <label className="text-sm font-medium text-gray-700">Mês (início)</label>
+              <label className="text-sm font-medium text-gray-200">Mês (início)</label>
               <input
                 type="month"
                 value={newEventMonth}
                 onChange={e => setNewEventMonth(e.target.value)}
-                className="px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary border-gray-300 font-mono"
+                className="px-3 py-2 rounded-md shadow-sm bg-black/30 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary font-mono"
               />
             </div>
             <CurrencyInput

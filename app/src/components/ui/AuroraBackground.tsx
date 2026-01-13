@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Sphere } from '@react-three/drei';
 import * as THREE from 'three';
+import { cn } from '@/utils/utils';
 
 function MovingOrb({
   color,
@@ -35,23 +36,29 @@ function MovingOrb({
   );
 }
 
-export function AuroraBackground() {
+export function AuroraBackground({ className }: { className?: string }) {
   return (
-    <div className="fixed inset-0 -z-50 bg-white overflow-hidden">
+    <div
+      className={cn(
+        'absolute inset-0 overflow-hidden pointer-events-none',
+        'bg-background-light dark:bg-background-dark',
+        className
+      )}
+    >
       {/* 
         Technique: Render distinct distinct colored orbs, then heavily blur them with CSS.
         This ensures visible, strong colors that flow into each other.
       */}
-      <Canvas camera={{ position: [0, 0, 10], fov: 75 }}>
-        {/* Orb 1: The Main Brand Blue */}
+      <Canvas className="absolute inset-0" camera={{ position: [0, 0, 10], fov: 75 }}>
+        {/* Orb 1: Primary */}
         <MovingOrb
-          color="#3b82f6" // Blue-500
+          color="#8b5cf6" // Violet-500
           position={[-2, 1, 0]}
           speed={0.4}
           scale={2.5}
         />
 
-        {/* Orb 2: Bright Cyan Accent */}
+        {/* Orb 2: Secondary */}
         <MovingOrb
           color="#06b6d4" // Cyan-500
           position={[3, -1, -2]}
@@ -69,7 +76,7 @@ export function AuroraBackground() {
       </Canvas>
 
       {/* Heavy Blur Overlay to create the "Aurora/Glass" gradient look */}
-      <div className="absolute inset-0 backdrop-blur-[80px] bg-white/30" />
+      <div className="absolute inset-0 backdrop-blur-[80px] bg-white/20 dark:bg-black/30" />
     </div>
   );
 }

@@ -100,13 +100,13 @@ export function ExtrasManager({ month, isOpen, onClose }: ExtrasManagerProps) {
         */}
 
         {/* FORM */}
-        <div className="grid grid-cols-1 gap-4 p-4 bg-gray-50 rounded-lg border">
+        <div className="grid grid-cols-1 gap-4 p-4 bg-white/5 rounded-lg border border-white/10">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+            <label className="block text-sm font-medium text-gray-200 mb-1">Tipo</label>
             <select
               value={type}
               onChange={e => setType(e.target.value as VariationType)}
-              className="w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+              className="w-full rounded-md border border-white/10 bg-black/30 text-white p-2 text-sm focus:ring-primary/60 focus:border-primary"
             >
               {Object.entries(VARIATION_META).map(([key, meta]) => (
                 <option key={key} value={key}>
@@ -127,10 +127,10 @@ export function ExtrasManager({ month, isOpen, onClose }: ExtrasManagerProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+            <label className="block text-sm font-medium text-gray-200 mb-1">Descrição</label>
             <input
               type="text"
-              className="w-full rounded-md border border-gray-300 p-2 text-sm"
+              className="w-full rounded-md border border-white/10 bg-black/30 text-white p-2 text-sm"
               placeholder="Ex: 2 horas extras dia 15"
               value={description}
               onChange={e => setDescription(e.target.value)}
@@ -151,9 +151,9 @@ export function ExtrasManager({ month, isOpen, onClose }: ExtrasManagerProps) {
 
         {/* LIST */}
         <div>
-          <h4 className="font-medium text-gray-900 mb-3">Lançamentos do Mês</h4>
+          <h4 className="font-medium text-gray-100 mb-3">Lançamentos do Mês</h4>
           {currentEntry.variations.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-4 bg-gray-50 rounded-lg border border-dashed">
+            <p className="text-sm text-gray-400 text-center py-4 bg-white/5 rounded-lg border border-dashed border-white/10">
               Nenhum lançamento extra neste mês.
             </p>
           ) : (
@@ -161,7 +161,7 @@ export function ExtrasManager({ month, isOpen, onClose }: ExtrasManagerProps) {
               {currentEntry.variations.map(v => (
                 <li
                   key={v.id}
-                  className="flex items-center justify-between p-3 bg-white border rounded-lg shadow-sm"
+                  className="flex items-center justify-between p-3 bg-black/20 border border-white/10 rounded-lg shadow-sm"
                 >
                   <div>
                     <span

@@ -4,6 +4,7 @@ import { Loader2, Plus, Users, Layout, User, Trash2, LogOut, UserPlus } from 'lu
 import { motion } from 'framer-motion';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { InviteModal } from '@/components/invite/InviteModal';
+import { SystemBackground } from '@/components/ui/SystemBackground';
 
 interface LobbyScreenProps {
   onSelectEmployee: (employee: Employee) => void;
@@ -176,15 +177,17 @@ export function LobbyScreen({ onSelectEmployee, onLogout }: LobbyScreenProps) {
 
   if (loading && employers.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-900 text-white">
-        <Loader2 className="animate-spin h-8 w-8 text-indigo-500" />
+      <div className="relative flex items-center justify-center min-h-screen text-white">
+        <SystemBackground mode="form" />
+        <Loader2 className="animate-spin h-8 w-8 text-indigo-500 relative z-10" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="relative min-h-screen text-white p-8">
+      <SystemBackground mode="form" />
+      <div className="max-w-4xl mx-auto relative z-10">
         <header className="mb-12 text-center relative">
           <button
             onClick={onLogout}

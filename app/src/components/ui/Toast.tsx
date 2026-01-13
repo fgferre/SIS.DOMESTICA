@@ -12,21 +12,25 @@ interface ToastProps {
 
 export function Toast({ message, type, onClose }: ToastProps) {
   const bgColors = {
-    success: 'bg-green-100 border-green-500 text-green-800',
-    error: 'bg-red-100 border-red-500 text-red-800',
-    warning: 'bg-yellow-100 border-yellow-500 text-yellow-800',
-    info: 'bg-blue-100 border-blue-500 text-blue-800',
+    success: 'border-success/30 text-success',
+    error: 'border-danger/30 text-danger',
+    warning: 'border-yellow-400/30 text-yellow-700 dark:text-yellow-200',
+    info: 'border-secondary/30 text-secondary',
   };
 
   return (
     <div
       className={cn(
-        'fixed bottom-4 right-4 z-50 flex items-center p-4 mb-4 text-sm border-l-4 rounded shadow-lg animate-in slide-in-from-right-5 fade-in duration-300',
+        'fixed bottom-4 right-4 z-50 flex items-center gap-3 p-4 text-sm rounded-lg shadow-lg animate-in slide-in-from-right-5 fade-in duration-300',
+        'glass-panel border',
         bgColors[type]
       )}
     >
-      <div className="flex-1 font-medium">{message}</div>
-      <button onClick={onClose} className="ml-3 hover:opacity-75">
+      <div className="flex-1 font-medium text-slate-900 dark:text-gray-100">{message}</div>
+      <button
+        onClick={onClose}
+        className="hover:opacity-80 text-slate-600 hover:text-slate-900 dark:text-gray-300 dark:hover:text-white"
+      >
         <X size={16} />
       </button>
     </div>

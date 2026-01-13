@@ -1,28 +1,21 @@
 import { useEffect, useState } from 'react';
 import { usePayrollStore } from '@/hooks/usePayrollStore';
 import { EmployerService } from '@/services/EmployerService';
-import { LedgerTable } from '@/components/features/LedgerTable';
-import { SummaryCards } from '@/components/features/SummaryCards';
-import {
-  Wallet,
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  UserCog,
-  Building2,
-  LogOut,
-} from 'lucide-react';
+import { LedgerTable } from '@/components/features/LedgerTableV2';
+import { SummaryCards } from '@/components/features/SummaryCardsV2';
+import { ThemeToggleButton } from '@/components/ui/ThemeToggleButton';
+import { Icon } from '@/components/ui/Icon';
 import { EmployeeSettingsModal } from '@/components/features/EmployeeSettingsModal';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { SyncStatusIndicator } from '@/components/ui/SyncStatusIndicator';
 import { useAuth } from '@/contexts/AuthContext';
 import { LobbyScreen } from '@/components/lobby/LobbyScreen';
-import { LandingScreen } from '@/components/LandingScreen';
+import { LandingScreen } from '@/components/LandingScreenV2';
 import { Employee } from '@/services/EmployerService';
 
 import { ToastProvider } from '@/components/ui/Toast';
 import { ConfettiOverlay } from '@/components/ui/ConfettiOverlay';
-import { AuroraBackground } from '@/components/ui/AuroraBackground';
+import { SystemBackground } from '@/components/ui/SystemBackground';
 import { useAutoSave } from '@/hooks/useAutoSave';
 
 function App() {
@@ -191,16 +184,15 @@ function App() {
         onDone={clearCelebration}
       />
 
-      {/* Global Animated Background */}
-      <AuroraBackground />
+      <SystemBackground mode="app" />
 
       {/* Invite Acceptance Modal */}
       {showInviteModal && inviteInfo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div className="relative bg-white rounded-xl shadow-2xl max-w-md w-full p-6 text-center">
-            <div className="mx-auto w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
-              <Building2 className="h-6 w-6 text-indigo-600" />
+          <div className="relative glass-panel rounded-xl border border-white/10 shadow-2xl max-w-md w-full p-6 text-center clip-corner bg-glass-bg">
+            <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4 shadow-neon-purple">
+              <Icon name="domain" size={24} className="text-primary" />
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">Convite para Família</h3>
             <p className="text-gray-600 mb-6">
@@ -249,13 +241,14 @@ function App() {
         </div>
       )}
 
-      <div className="relative min-h-screen font-sans text-gray-900 bg-transparent">
+      <div className="relative min-h-screen font-sans text-white bg-transparent">
         {/* Header - Glass Effect */}
-        <header className="sticky top-0 z-20 glass border-b-0">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <header className="sticky top-0 z-40 border-b border-white/10 bg-black/20 backdrop-blur-xl">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <div className="bg-blue-600 p-2 rounded-lg text-white shadow-lg shadow-blue-500/30">
-                <Wallet size={20} />
+              <div className="w-11 h-11 bg-gradient-to-br from-primary/80 to-blue-600/80 rounded-lg flex items-center justify-center shadow-neon-purple clip-corner relative overflow-hidden transition-all duration-300 hover:shadow-[0_0_25px_rgba(139,92,246,0.6)]">
+                <div className="absolute inset-0 bg-white/20 skew-x-12 -translate-x-full hover:translate-x-full transition-transform duration-700" />
+                <Icon name="grid_view" size={22} className="text-white relative z-10" />
               </div>
               <div>
                 <h1 className="text-xl font-bold tracking-tight text-gray-900">SIS.DOMÉSTICA</h1>
@@ -277,9 +270,9 @@ function App() {
               {user && (
                 <button
                   onClick={() => setSelectedEmployee(null)}
-                  className="hidden md:flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors"
+                  className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg glass-panel text-gray-300 hover:text-white hover:border-primary hover:shadow-neon-purple transition-all duration-300"
                 >
-                  <Building2 size={14} />
+                  <Icon name="domain" size={18} />
                   Trocar
                 </button>
               )}
@@ -290,44 +283,42 @@ function App() {
               )}
 
               <button
-                onClick={() => (user ? handleSignOut() : setIsAuthModalOpen(true))}
-                className={`p-2 rounded-full transition-colors ${
-                  user
-                    ? 'text-red-400 hover:bg-red-400/10'
-                    : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
-                }`}
-                title={user ? `Sair de ${user.email}` : 'Login / Salvar na Nuvem'}
+                onClick={() => handleSignOut()}
+                className="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-gray-400 hover:text-white hover:border-accent hover:shadow-neon-red transition-all duration-300"
+                title={user ? `Sair de ${user.email}` : 'Sair'}
               >
-                {user ? <LogOut size={20} /> : <UserCog size={20} />}
+                <Icon name="logout" size={20} />
               </button>
 
               {/* Seletor de Ano */}
-              <div className="flex items-center bg-gray-100 rounded-lg p-0.5 border border-gray-200">
+              <div className="flex items-center gap-2 bg-glass-bg rounded-lg p-1.5 border border-white/10 backdrop-blur-md shadow-lg">
                 <button
                   onClick={() => handleYearChange(-1)}
-                  className="p-1.5 hover:bg-white rounded text-gray-500 hover:text-gray-700 transition-colors"
+                  className="w-9 h-9 flex items-center justify-center rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors border border-transparent hover:border-white/5"
                   title="Ano anterior"
                 >
-                  <ChevronLeft size={18} />
+                  <Icon name="chevron_left" size={18} />
                 </button>
-                <span className="px-3 py-1 font-mono font-bold text-blue-600 min-w-[60px] text-center">
+                <span className="font-display text-lg font-bold text-secondary px-2 drop-shadow-[0_0_8px_rgba(6,182,212,0.6)] min-w-[64px] text-center">
                   {activeYear}
                 </span>
                 <button
                   onClick={() => handleYearChange(1)}
-                  className="p-1.5 hover:bg-white rounded text-gray-500 hover:text-gray-700 transition-colors"
+                  className="w-9 h-9 flex items-center justify-center rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors border border-transparent hover:border-white/5"
                   title="Próximo ano"
                 >
-                  <ChevronRight size={18} />
+                  <Icon name="chevron_right" size={18} />
                 </button>
               </div>
 
+              <ThemeToggleButton className="hidden sm:flex" />
+
               <button
                 onClick={() => setIsEmployeeModalOpen(true)}
-                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                className="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-gray-400 hover:text-white hover:border-primary hover:shadow-neon-purple transition-all duration-300"
                 title="Cadastro e Eventos"
               >
-                <Settings size={20} />
+                <Icon name="settings" size={20} />
               </button>
 
               {/* Botão Reset Movido para menu de 'perigo' se necessário, ou mantido aqui */}
@@ -336,7 +327,7 @@ function App() {
         </header>
 
         {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
           {/* KPI Section */}
           <section>
             <SummaryCards />
