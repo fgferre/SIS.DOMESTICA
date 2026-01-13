@@ -1,0 +1,317 @@
+/* Global Landing Styles */
+
+/* Glassmorphism Classes */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.glass-panel-strong {
+  background: rgba(15, 15, 22, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Neon Effects */
+.neon-text-violet {
+  text-shadow:
+    0 0 10px rgba(139, 92, 246, 0.5),
+    0 0 20px rgba(139, 92, 246, 0.3);
+}
+
+.neon-text-cyan {
+  text-shadow:
+    0 0 10px rgba(6, 182, 212, 0.5),
+    0 0 20px rgba(6, 182, 212, 0.3);
+}
+
+.neon-border {
+  box-shadow:
+    0 0 5px rgba(139, 92, 246, 0.2),
+    inset 0 0 5px rgba(139, 92, 246, 0.1);
+  transition: all 0.3s ease;
+}
+
+.neon-border:hover {
+  box-shadow:
+    0 0 15px rgba(139, 92, 246, 0.5),
+    inset 0 0 10px rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
+/* Scroll Reveal Classes */
+.reveal-hidden {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Grid Background for Demo Section */
+.hud-grid {
+  background-image:
+    linear-gradient(rgba(139, 92, 246, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 92, 246, 0.1) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Scanner Effect for Table */
+.scanner-row {
+  position: relative;
+  overflow: hidden;
+}
+
+.scanner-row::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.2), transparent);
+  transform: translateX(-100%);
+  transition: none;
+}
+
+.scanner-row:hover::after {
+  animation: scan 1.5s ease-in-out infinite;
+}
+
+/* Hero Ledger Card 3D Transforms */
+.hero-visual {
+  perspective: 1000px;
+}
+
+.ledger-card {
+  transition: transform 0.3s ease;
+}
+
+.ledger-card.main {
+  transform: rotateY(-10deg) rotateX(5deg);
+}
+
+/* Custom Scrollbar override for landing if needed */
+.landing-scroll ::-webkit-scrollbar {
+  width: 8px;
+}
+.landing-scroll ::-webkit-scrollbar-track {
+  background: #050508;
+}
+.landing-scroll ::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+.landing-scroll ::-webkit-scrollbar-thumb:hover {
+  background: #8b5cf6;
+}
+
+/* Float Animations - Matching Mockup */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float 6s ease-in-out infinite 2s;
+}
+
+/* Pulse Glow Animation */
+@keyframes pulse-glow {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 10px #10b981;
+  }
+  50% {
+    opacity: 0.5;
+    box-shadow: 0 0 2px #10b981;
+  }
+}
+
+.status-pulse {
+  animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Scan Animation for Demo Table */
+@keyframes scan {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Typography Override - Matching Mockup */
+.font-display {
+  letter-spacing: 0.05em;
+}
+
+/* ========================================
+   3D Screenshot Gallery
+   ======================================== */
+
+.screenshot-gallery {
+  perspective: 2000px;
+  perspective-origin: 50% 50%;
+}
+
+.screenshot-card {
+  position: absolute;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+.screenshot-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Main Screenshot - Front Center */
+.screenshot-card.main {
+  z-index: 10;
+  transform: perspective(1500px) rotateY(-8deg) rotateX(5deg) translateZ(0);
+  width: 480px;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.screenshot-card.main:hover {
+  transform: perspective(1500px) rotateY(-4deg) rotateX(2deg) translateZ(30px) scale(1.02);
+  box-shadow:
+    0 35px 70px -15px rgba(0, 0, 0, 0.7),
+    0 0 30px rgba(139, 92, 246, 0.3);
+}
+
+/* Back Left Screenshot */
+.screenshot-card.back-left {
+  z-index: 5;
+  transform: perspective(1500px) rotateY(-20deg) translateX(-40%) translateZ(-100px) scale(0.8);
+  opacity: 0.6;
+  width: 400px;
+  filter: brightness(0.8);
+}
+
+.screenshot-card.back-left:hover {
+  opacity: 0.9;
+  transform: perspective(1500px) rotateY(-15deg) translateX(-35%) translateZ(-50px) scale(0.85);
+  filter: brightness(1);
+}
+
+/* Back Right Screenshot */
+.screenshot-card.back-right {
+  z-index: 5;
+  transform: perspective(1500px) rotateY(15deg) translateX(40%) translateZ(-100px) scale(0.8);
+  opacity: 0.6;
+  width: 400px;
+  filter: brightness(0.8);
+}
+
+.screenshot-card.back-right:hover {
+  opacity: 0.9;
+  transform: perspective(1500px) rotateY(10deg) translateX(35%) translateZ(-50px) scale(0.85);
+  filter: brightness(1);
+}
+
+/* Bottom Screenshot */
+.screenshot-card.bottom {
+  z-index: 3;
+  transform: perspective(1500px) rotateX(20deg) translateY(60%) translateZ(-150px) scale(0.7);
+  opacity: 0.4;
+  width: 350px;
+  filter: brightness(0.6);
+}
+
+/* Glow border effect for main */
+.screenshot-card.main::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(135deg, #8b5cf6, #06b6d4, #10b981);
+  z-index: -1;
+  border-radius: 18px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.screenshot-card.main:hover::before {
+  opacity: 0.5;
+}
+
+/* Demo Section Interactive Gallery */
+.demo-gallery {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  perspective: 1500px;
+}
+
+.demo-screenshot {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+  transition: all 0.4s ease;
+  transform-style: preserve-3d;
+  cursor: pointer;
+}
+
+.demo-screenshot img {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.demo-screenshot:hover {
+  transform: translateY(-10px) rotateX(5deg) scale(1.02);
+  box-shadow:
+    0 30px 60px -15px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(139, 92, 246, 0.2);
+}
+
+.demo-screenshot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(5, 5, 8, 0.8) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+.demo-screenshot .label {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  color: white;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  z-index: 10;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}

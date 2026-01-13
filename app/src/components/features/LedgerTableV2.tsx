@@ -129,7 +129,7 @@ export function LedgerTable() {
       </div>
 
       {/* Column headers (desktop) */}
-      <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-gray-500 mb-2 border-b border-black/5 dark:border-white/5">
+      <div className="hidden md:grid grid-cols-[repeat(14,minmax(0,1fr))] gap-4 px-6 py-3 text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-gray-500 mb-2 border-b border-black/5 dark:border-white/5">
         <div className="col-span-2 pl-2">Mês / Status</div>
         <div className="col-span-2 text-center border-l border-black/5 dark:border-white/5">Líquido Acordado</div>
         <div className="col-span-1 text-center border-l border-black/5 dark:border-white/5">Ações</div>
@@ -138,8 +138,8 @@ export function LedgerTable() {
         <div className="col-span-1 text-right border-l border-black/5 dark:border-white/5">
           {viewMode === 'caixa' ? 'Guia DAE' : 'Provisão'}
         </div>
-        <div className="col-span-1 text-right text-slate-900 dark:text-white border-l border-black/5 dark:border-white/5">A Pagar</div>
-        <div className="col-span-1 text-right text-secondary border-l border-black/5 dark:border-white/5">Acúmulo</div>
+        <div className="col-span-2 text-right text-slate-900 dark:text-white border-l border-black/5 dark:border-white/5">A Pagar</div>
+        <div className="col-span-2 text-right text-secondary border-l border-black/5 dark:border-white/5">Acúmulo</div>
       </div>
 
       <div className="space-y-6 px-4 pb-6">
@@ -296,7 +296,7 @@ export function LedgerTable() {
             <div key={entry.month} className="relative group">
               <div
                 className={cn(
-                  'glass-panel rounded-lg p-4 md:px-6 md:py-5 grid grid-cols-1 md:grid-cols-12 gap-4 items-center border-l-4 border-l-transparent hover:border-l-primary transition-all duration-300 z-20 relative beam-border hover:bg-black/5 dark:hover:bg-white/5',
+                  'glass-panel rounded-lg p-4 md:px-6 md:py-5 grid grid-cols-1 md:grid-cols-[repeat(14,minmax(0,1fr))] gap-4 items-center border-l-4 border-l-transparent hover:border-l-primary transition-all duration-300 z-20 relative beam-border hover:bg-black/5 dark:hover:bg-white/5',
                   (isOverdueSalary || isOverdueBonus || isOverdue13th) && 'border-l-accent/80'
                 )}
                 role="row"
@@ -582,10 +582,10 @@ export function LedgerTable() {
                 <div className="col-span-1 text-right font-mono text-slate-700 dark:text-gray-400">
                   {viewMode === 'caixa' ? formatCurrency(entry.dae) : formatCurrency(entry.provisions)}
                 </div>
-                <div className="col-span-1 text-right font-mono text-slate-900 dark:text-white font-bold text-lg">
+                <div className="col-span-2 text-right font-mono tabular-nums whitespace-nowrap text-slate-900 dark:text-white font-bold text-lg tracking-tight">
                   {formatCurrency(entry.toPay)}
                 </div>
-                <div className="col-span-1 text-right font-mono text-secondary font-bold">
+                <div className="col-span-2 text-right font-mono tabular-nums whitespace-nowrap text-secondary font-bold tracking-tight">
                   {formatCurrency(entry.runningBalance)}
                 </div>
               </div>

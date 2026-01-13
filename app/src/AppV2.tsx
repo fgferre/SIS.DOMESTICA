@@ -10,7 +10,7 @@ import { AuthModal } from '@/components/auth/AuthModal';
 import { SyncStatusIndicator } from '@/components/ui/SyncStatusIndicator';
 import { useAuth } from '@/contexts/AuthContext';
 import { LobbyScreen } from '@/components/lobby/LobbyScreen';
-import { LandingScreen } from '@/components/LandingScreenV2';
+import { LandingPage } from '@/components/landing/LandingPage';
 import type { Employee } from '@/services/EmployerService';
 
 import { ToastProvider } from '@/components/ui/Toast';
@@ -128,7 +128,7 @@ export default function App() {
   if (!user) {
     return (
       <>
-        <LandingScreen
+        <LandingPage
           onLogin={() => {
             setAuthMode('login');
             setIsAuthModalOpen(true);
