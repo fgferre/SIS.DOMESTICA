@@ -61,6 +61,10 @@ export function LandingNavbar({ onLogin }: LandingNavbarProps) {
             <a
               key={item}
               href={`#${item.toLowerCase()}`}
+              onClick={e => {
+                e.preventDefault();
+                document.getElementById(item.toLowerCase())?.scrollIntoView({ behavior: 'smooth' });
+              }}
               className="text-gray-400 font-sans font-semibold text-lg hover:text-white transition-colors relative group"
             >
               {item}
