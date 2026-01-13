@@ -280,6 +280,7 @@
   transition: all 0.4s ease;
   transform-style: preserve-3d;
   cursor: pointer;
+  background-color: #050508; /* Ensure opacity */
 }
 
 .demo-screenshot img {
@@ -290,10 +291,11 @@
 }
 
 .demo-screenshot:hover {
-  transform: translateY(-10px) rotateX(5deg) scale(1.02);
+  transform: translateY(-10px) rotateX(2deg) scale(1.5);
   box-shadow:
-    0 30px 60px -15px rgba(0, 0, 0, 0.6),
-    0 0 20px rgba(139, 92, 246, 0.2);
+    0 50px 100px -20px rgba(0, 0, 0, 0.8),
+    0 0 30px rgba(139, 92, 246, 0.4);
+  z-index: 50;
 }
 
 .demo-screenshot::after {
