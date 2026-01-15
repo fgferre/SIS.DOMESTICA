@@ -11,6 +11,8 @@
     "deploy": "gh-pages -d dist",
     "build": "tsc && vite build",
     "lint": "eslint .",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
     "preview": "vite preview"
   },
   "dependencies": {
