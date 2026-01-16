@@ -49,7 +49,6 @@ const computeDueByKind = (entry: LedgerEntry) => {
     entry.payment13th?.type === 2 ? Math.max(0, Number(thirteenthNet.toFixed(2))) : 0;
 
   const bonusDue = Math.max(0, Number((entry.bonusPayout || 0).toFixed(2)));
-
   const terminationFineDue = Math.max(0, Number((entry.terminationFine || 0).toFixed(2)));
   const terminationEntitlementsDue = Math.max(
     0,
@@ -167,10 +166,14 @@ export function PaymentsManager({ month, isOpen, onClose }: PaymentsManagerProps
   });
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Pagamentos Realizados - ${activeYear}/${month}`}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Pagamentos Realizados - ${activeYear}/${month}`}
+    >
       <div className="space-y-6">
         <div className="space-y-2">
-          <h4 className="font-medium text-gray-800">Verbas (devido vs. pago)</h4>
+          <h4 className="font-medium text-gray-100">Verbas (devido vs. pago)</h4>
           <div className="space-y-2">
             {(Object.keys(KIND_LABEL) as PaymentKind[]).map(k => {
               const dueK = due?.[k] ?? 0;
@@ -182,18 +185,18 @@ export function PaymentsManager({ month, isOpen, onClose }: PaymentsManagerProps
               return (
                 <div
                   key={k}
-                  className="p-3 rounded-md border bg-gray-50 flex items-center justify-between gap-3"
+                  className="p-3 rounded-md border border-white/10 bg-white/5 flex items-center justify-between gap-3"
                 >
                   <div className="min-w-0">
-                    <div className="font-medium text-gray-800">{KIND_LABEL[k]}</div>
-                    <div className="text-xs text-gray-500 font-mono tabular-nums">
-                      Devido: {formatCurrency(dueK)} · Pago: {formatCurrency(paidK)} · Falta:{' '}
+                    <div className="font-medium text-gray-100">{KIND_LABEL[k]}</div>
+                    <div className="text-xs text-gray-400 font-mono tabular-nums">
+                      Devido: {formatCurrency(dueK)} • Pago: {formatCurrency(paidK)} • Falta:{' '}
                       {formatCurrency(remaining)}
                       {dueLabel && (
                         <>
                           {' '}
-                          · Venc.:{' '}
-                          <span className={dueLabel === 'vencido' ? 'text-red-600 font-bold' : ''}>
+                          • Venc.:{' '}
+                          <span className={dueLabel === 'vencido' ? 'text-danger font-bold' : ''}>
                             {dueLabel === 'vencido'
                               ? 'vencido'
                               : new Date(`${dueLabel}T12:00:00`).toLocaleDateString('pt-BR')}
@@ -204,7 +207,7 @@ export function PaymentsManager({ month, isOpen, onClose }: PaymentsManagerProps
                   </div>
                   <button
                     onClick={() => handlePrefill(k)}
-                    className="px-3 py-1 text-xs font-bold rounded border bg-white hover:bg-gray-100"
+                    className="px-3 py-1 text-xs font-bold rounded border border-white/10 bg-black/20 hover:bg-white/10 text-gray-200 hover:text-white transition-colors"
                     title="Preencher pagamento"
                   >
                     Lançar
@@ -215,15 +218,15 @@ export function PaymentsManager({ month, isOpen, onClose }: PaymentsManagerProps
           </div>
         </div>
 
-        <div className="p-4 border rounded-md bg-white space-y-3">
-          <h4 className="font-medium text-gray-800">Novo pagamento</h4>
+        <div className="p-4 border border-white/10 rounded-md bg-white/5 space-y-3">
+          <h4 className="font-medium text-gray-100">Novo pagamento</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Verba</label>
+              <label className="block text-sm font-medium text-gray-200 mb-1">Verba</label>
               <select
                 value={kind}
                 onChange={e => setKind(e.target.value as PaymentKind)}
-                className="w-full rounded-md border border-gray-300 p-2 text-sm"
+                className="w-full rounded-md border border-white/10 bg-black/30 text-white p-2 text-sm"
               >
                 {(Object.keys(KIND_LABEL) as PaymentKind[]).map(k => (
                   <option key={k} value={k}>
@@ -233,11 +236,11 @@ export function PaymentsManager({ month, isOpen, onClose }: PaymentsManagerProps
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Método</label>
+              <label className="block text-sm font-medium text-gray-200 mb-1">Método</label>
               <select
                 value={method}
                 onChange={e => setMethod(e.target.value as PaymentMethod)}
-                className="w-full rounded-md border border-gray-300 p-2 text-sm"
+                className="w-full rounded-md border border-white/10 bg-black/30 text-white p-2 text-sm"
               >
                 {(Object.keys(METHOD_LABEL) as PaymentMethod[]).map(m => (
                   <option key={m} value={m}>
@@ -247,36 +250,38 @@ export function PaymentsManager({ month, isOpen, onClose }: PaymentsManagerProps
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Data</label>
+              <label className="block text-sm font-medium text-gray-200 mb-1">Data</label>
               <input
                 type="date"
                 value={paidAt}
                 onChange={e => setPaidAt(e.target.value)}
-                className="w-full rounded-md border border-gray-300 p-2 text-sm"
+                className="w-full rounded-md border border-white/10 bg-black/30 text-white p-2 text-sm"
               />
             </div>
             <CurrencyInput label="Valor (R$)" value={amount} onValueChange={setAmount} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Observação (opcional)</label>
+            <label className="block text-sm font-medium text-gray-200 mb-1">
+              Observação (opcional)
+            </label>
             <input
               type="text"
               value={note}
               onChange={e => setNote(e.target.value)}
               placeholder="Ex: pago em 2 partes, ajuste, etc."
-              className="w-full rounded-md border border-gray-300 p-2 text-sm"
+              className="w-full rounded-md border border-white/10 bg-black/30 text-white p-2 text-sm"
             />
           </div>
           <button
             onClick={handleAdd}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 rounded-md transition-colors"
+            className="w-full bg-success/80 hover:bg-success text-white font-bold py-2 rounded-md transition-colors shadow-neon-green border border-success/30"
           >
             Adicionar pagamento
           </button>
         </div>
 
         <div className="space-y-2">
-          <h4 className="font-medium text-gray-800">Pagamentos lançados</h4>
+          <h4 className="font-medium text-gray-100">Pagamentos lançados</h4>
           {sortedPayments.length === 0 ? (
             <div className="text-sm text-gray-400">Nenhum pagamento lançado neste mês.</div>
           ) : (
@@ -284,21 +289,21 @@ export function PaymentsManager({ month, isOpen, onClose }: PaymentsManagerProps
               {sortedPayments.map(p => (
                 <div
                   key={p.id}
-                  className="flex items-center justify-between gap-3 p-3 rounded-md border bg-gray-50"
+                  className="flex items-center justify-between gap-3 p-3 rounded-md border border-white/10 bg-white/5"
                 >
                   <div className="min-w-0">
-                    <div className="text-sm font-medium text-gray-800">
-                      {KIND_LABEL[p.kind]} · {METHOD_LABEL[p.method]}
+                    <div className="text-sm font-medium text-gray-100">
+                      {KIND_LABEL[p.kind]} • {METHOD_LABEL[p.method]}
                     </div>
-                    <div className="text-xs text-gray-500 font-mono tabular-nums">
-                      {new Date(`${p.paidAt}T12:00:00`).toLocaleDateString('pt-BR')} ·{' '}
+                    <div className="text-xs text-gray-400 font-mono tabular-nums">
+                      {new Date(`${p.paidAt}T12:00:00`).toLocaleDateString('pt-BR')} •{' '}
                       {formatCurrency(p.amount)}
-                      {p.note ? ` · ${p.note}` : ''}
+                      {p.note ? ` • ${p.note}` : ''}
                     </div>
                   </div>
                   <button
                     onClick={() => removePayment(month, p.id)}
-                    className="p-2 rounded hover:bg-red-50 text-gray-400 hover:text-red-600"
+                    className="p-2 rounded hover:bg-danger/10 text-gray-400 hover:text-danger transition-colors"
                     title="Remover pagamento"
                   >
                     <Trash2 size={16} />

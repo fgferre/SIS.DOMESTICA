@@ -85,6 +85,7 @@ export function LobbyScreen({ onSelectEmployee, onLogout }: LobbyScreenProps) {
       setSelectedEmployer(newEmp);
       setIsCreatingEmployer(false);
     } catch (error) {
+      console.error(error);
       alert('Erro ao criar família');
     } finally {
       setLoading(false);
@@ -104,6 +105,7 @@ export function LobbyScreen({ onSelectEmployee, onLogout }: LobbyScreenProps) {
       setEmployees([...employees, newEmp]);
       setIsCreatingEmployee(false);
     } catch (error) {
+      console.error(error);
       alert('Erro ao criar funcionário');
     } finally {
       setLoading(false);
@@ -191,7 +193,7 @@ export function LobbyScreen({ onSelectEmployee, onLogout }: LobbyScreenProps) {
         <header className="mb-12 text-center relative">
           <button
             onClick={onLogout}
-            className="absolute right-0 top-0 text-sm text-slate-400 hover:text-red-400 flex items-center gap-1 transition-colors"
+            className="absolute right-0 top-0 text-sm text-slate-400 hover:text-red-400 flex items-center gap-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
           >
             <LogOut className="h-4 w-4" />
             Sair
@@ -212,7 +214,7 @@ export function LobbyScreen({ onSelectEmployee, onLogout }: LobbyScreenProps) {
               </h2>
               <button
                 onClick={() => setIsCreatingEmployer(true)}
-                className="text-sm bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                className="text-sm bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
               >
                 <Plus className="h-4 w-4" /> Nova Família
               </button>
@@ -233,21 +235,21 @@ export function LobbyScreen({ onSelectEmployee, onLogout }: LobbyScreenProps) {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-green-600 hover:bg-green-500 px-4 rounded-lg font-medium"
+                  className="bg-green-600 hover:bg-green-500 px-4 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Salvar
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsCreatingEmployer(false)}
-                  className="text-slate-400 px-3 hover:text-white"
+                  className="text-slate-400 px-3 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
                 >
-                  Cancel
+                  Cancelar
                 </button>
               </form>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-items-center">
               {employers.length === 0 && !isCreatingEmployer && (
                 <div className="col-span-full text-center py-12 text-slate-500 bg-slate-800/50 rounded-xl border border-white/5 border-dashed">
                   Nenhuma família encontrada. Crie a primeira!
@@ -258,7 +260,15 @@ export function LobbyScreen({ onSelectEmployee, onLogout }: LobbyScreenProps) {
                 <motion.div
                   key={emp.id}
                   whileHover={{ scale: 1.02 }}
-                  className="relative p-6 pb-12 bg-slate-800 hover:bg-slate-750 border border-white/5 rounded-xl text-left hover:border-indigo-500/50 transition-all group shadow-lg cursor-pointer"
+                  tabIndex={0}
+                  role="button"
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedEmployer(emp);
+                    }
+                  }}
+                  className="relative w-full max-w-sm p-6 pb-12 bg-slate-800 hover:bg-slate-700/80 border border-white/5 rounded-xl text-left hover:border-indigo-500/50 transition-all group shadow-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
                   onClick={() => setSelectedEmployer(emp)}
                 >
                   <div className="flex items-start justify-between mb-4">
@@ -274,7 +284,7 @@ export function LobbyScreen({ onSelectEmployee, onLogout }: LobbyScreenProps) {
                       e.stopPropagation();
                       setInviteModal({ isOpen: true, employer: emp });
                     }}
-                    className="absolute bottom-3 left-3 p-1.5 text-slate-500 hover:text-indigo-400 hover:bg-indigo-400/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                    className="absolute bottom-3 left-3 p-1.5 text-slate-500 hover:text-indigo-400 hover:bg-indigo-400/10 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
                     title="Convidar membro"
                   >
                     <UserPlus className="h-4 w-4" />
@@ -285,7 +295,7 @@ export function LobbyScreen({ onSelectEmployee, onLogout }: LobbyScreenProps) {
                       e.stopPropagation();
                       confirmDeleteEmployer(emp);
                     }}
-                    className="absolute bottom-3 right-3 p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                    className="absolute bottom-3 right-3 p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
                     title="Deletar família"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -300,7 +310,7 @@ export function LobbyScreen({ onSelectEmployee, onLogout }: LobbyScreenProps) {
             <div className="flex items-center justify-between">
               <button
                 onClick={() => setSelectedEmployer(null)}
-                className="text-sm text-slate-400 hover:text-white flex items-center gap-1"
+                className="text-sm text-slate-400 hover:text-white flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
               >
                 ← Voltar para Famílias
               </button>
@@ -316,7 +326,7 @@ export function LobbyScreen({ onSelectEmployee, onLogout }: LobbyScreenProps) {
 
               <button
                 onClick={() => setIsCreatingEmployee(true)}
-                className="text-sm bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-lg transition-colors flex items-center gap-2 font-medium shadow-lg shadow-emerald-900/20"
+                className="text-sm bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-lg transition-colors flex items-center gap-2 font-medium shadow-lg shadow-emerald-900/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
               >
                 <Plus className="h-4 w-4" /> Adicionar Funcionário
               </button>
@@ -358,14 +368,14 @@ export function LobbyScreen({ onSelectEmployee, onLogout }: LobbyScreenProps) {
                   <button
                     type="button"
                     onClick={() => setIsCreatingEmployee(false)}
-                    className="text-slate-400 px-4 py-2 hover:text-white"
+                    className="text-slate-400 px-4 py-2 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="bg-emerald-600 hover:bg-emerald-500 px-6 py-2 rounded-lg font-medium"
+                    className="bg-emerald-600 hover:bg-emerald-500 px-6 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Cadastrar
                   </button>
@@ -373,7 +383,7 @@ export function LobbyScreen({ onSelectEmployee, onLogout }: LobbyScreenProps) {
               </form>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-items-center">
               {employees.length === 0 && !isCreatingEmployee && (
                 <div className="col-span-full py-16 text-center">
                   <div className="bg-slate-800/50 inline-block p-4 rounded-full mb-4">
@@ -390,7 +400,15 @@ export function LobbyScreen({ onSelectEmployee, onLogout }: LobbyScreenProps) {
                 <motion.div
                   key={emp.id}
                   whileHover={{ y: -4 }}
-                  className="relative group overflow-hidden bg-slate-800 hover:bg-slate-750 border border-white/5 rounded-xl text-left transition-all hover:shadow-xl hover:shadow-indigo-500/10 cursor-pointer"
+                  tabIndex={0}
+                  role="button"
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onSelectEmployee(emp);
+                    }
+                  }}
+                  className="relative w-full max-w-sm group overflow-hidden bg-slate-800 hover:bg-slate-700/80 border border-white/5 rounded-xl text-left transition-all hover:shadow-xl hover:shadow-indigo-500/10 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
                   onClick={() => onSelectEmployee(emp)}
                 >
                   <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500 group-hover:bg-indigo-400 transition-colors" />
@@ -419,7 +437,7 @@ export function LobbyScreen({ onSelectEmployee, onLogout }: LobbyScreenProps) {
                       e.stopPropagation();
                       confirmDeleteEmployee(emp.id, emp.name);
                     }}
-                    className="absolute bottom-3 right-3 p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all opacity-0 group-hover:opacity-100 z-10"
+                    className="absolute bottom-3 right-3 p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 z-10"
                     title="Deletar funcionário"
                   >
                     <Trash2 className="h-4 w-4" />

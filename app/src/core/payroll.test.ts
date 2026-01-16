@@ -94,12 +94,12 @@ describe('Payroll Engine', () => {
     });
   });
 
-    describe('13th Salary', () => {
-      it('should calculate 1st installment (50% Gross)', () => {
-        const result = calculate13thSalary(3000, 1, 12, 0, date2025);
-        expect(result.gross).toBe(1500.0);
-        expect(result.net).toBe(1500.0);
-      });
+  describe('13th Salary', () => {
+    it('should calculate 1st installment (50% Gross)', () => {
+      const result = calculate13thSalary(3000, 1, 12, 0, date2025);
+      expect(result.gross).toBe(1500.0);
+      expect(result.net).toBe(1500.0);
+    });
 
     it('should calculate 2nd installment (Balance - Tax)', () => {
       // Gross 3000.
@@ -112,10 +112,10 @@ describe('Payroll Engine', () => {
       // Paid 1st Inst = 1500.
       // To Pay = 1233.39.
 
-        const result = calculate13thSalary(3000, 2, 12, 0, date2025, 1500);
-        expect(result.inss).toBe(253.41);
-        expect(result.irrf).toBe(13.2);
-        expect(result.net).toBe(1233.39);
-      });
+      const result = calculate13thSalary(3000, 2, 12, 0, date2025, 1500);
+      expect(result.inss).toBe(253.41);
+      expect(result.irrf).toBe(13.2);
+      expect(result.net).toBe(1233.39);
     });
+  });
 });

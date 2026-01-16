@@ -1,7 +1,7 @@
 /* Global Landing Styles */
 
 /* Glassmorphism Classes */
-.glass-panel {
+.landing-root .glass-panel {
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -9,7 +9,7 @@
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
 
-.glass-panel-strong {
+.landing-root .glass-panel-strong {
   background: rgba(15, 15, 22, 0.7);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -17,26 +17,26 @@
 }
 
 /* Neon Effects */
-.neon-text-violet {
+.landing-root .neon-text-violet {
   text-shadow:
     0 0 10px rgba(139, 92, 246, 0.5),
     0 0 20px rgba(139, 92, 246, 0.3);
 }
 
-.neon-text-cyan {
+.landing-root .neon-text-cyan {
   text-shadow:
     0 0 10px rgba(6, 182, 212, 0.5),
     0 0 20px rgba(6, 182, 212, 0.3);
 }
 
-.neon-border {
+.landing-root .neon-border {
   box-shadow:
     0 0 5px rgba(139, 92, 246, 0.2),
     inset 0 0 5px rgba(139, 92, 246, 0.1);
   transition: all 0.3s ease;
 }
 
-.neon-border:hover {
+.landing-root .neon-border:hover {
   box-shadow:
     0 0 15px rgba(139, 92, 246, 0.5),
     inset 0 0 10px rgba(139, 92, 246, 0.2);
@@ -44,19 +44,19 @@
 }
 
 /* Scroll Reveal Classes */
-.reveal-hidden {
+.landing-root .reveal-hidden {
   opacity: 0;
   transform: translateY(30px);
   transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.reveal-visible {
+.landing-root .reveal-visible {
   opacity: 1;
   transform: translateY(0);
 }
 
 /* Grid Background for Demo Section */
-.hud-grid {
+.landing-root .hud-grid {
   background-image:
     linear-gradient(rgba(139, 92, 246, 0.1) 1px, transparent 1px),
     linear-gradient(90deg, rgba(139, 92, 246, 0.1) 1px, transparent 1px);
@@ -64,12 +64,12 @@
 }
 
 /* Scanner Effect for Table */
-.scanner-row {
+.landing-root .scanner-row {
   position: relative;
   overflow: hidden;
 }
 
-.scanner-row::after {
+.landing-root .scanner-row::after {
   content: '';
   position: absolute;
   top: 0;
@@ -81,20 +81,20 @@
   transition: none;
 }
 
-.scanner-row:hover::after {
+.landing-root .scanner-row:hover::after {
   animation: scan 1.5s ease-in-out infinite;
 }
 
 /* Hero Ledger Card 3D Transforms */
-.hero-visual {
+.landing-root .hero-visual {
   perspective: 1000px;
 }
 
-.ledger-card {
+.landing-root .ledger-card {
   transition: transform 0.3s ease;
 }
 
-.ledger-card.main {
+.landing-root .ledger-card.main {
   transform: rotateY(-10deg) rotateX(5deg);
 }
 
@@ -126,11 +126,11 @@
   }
 }
 
-.animate-float {
+.landing-root .animate-float {
   animation: float 6s ease-in-out infinite;
 }
 
-.animate-float-delayed {
+.landing-root .animate-float-delayed {
   animation: float 6s ease-in-out infinite 2s;
 }
 
@@ -147,7 +147,7 @@
   }
 }
 
-.status-pulse {
+.landing-root .status-pulse {
   animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
@@ -162,7 +162,7 @@
 }
 
 /* Typography Override - Matching Mockup */
-.font-display {
+.landing-root .font-display {
   letter-spacing: 0.05em;
 }
 

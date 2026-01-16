@@ -76,7 +76,7 @@ export function ConfettiOverlay({ triggerId, durationMs = 1400, onDone }: Confet
 
     const next: Particle[] = [];
     for (let i = 0; i < count; i++) {
-      const angle = (-Math.PI / 2) + (Math.random() - 0.5) * 1.2;
+      const angle = -Math.PI / 2 + (Math.random() - 0.5) * 1.2;
       const speed = 260 + Math.random() * 360;
       next.push({
         x: centerX + (Math.random() - 0.5) * 30,

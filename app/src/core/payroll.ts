@@ -49,7 +49,7 @@ export function getINSSBreakdown(grossSalary: number, date: Date): INSSBreakdown
   const total = Number(rawItems.reduce((sum, it) => sum + it.amountRaw, 0).toFixed(2));
 
   // Ajuste de arredondamento: garante que soma das linhas = total exibido.
-  const items: INSSBreakdownItem[] = rawItems.map(({ amountRaw, ...rest }) => rest);
+  const items: INSSBreakdownItem[] = rawItems.map(({ amountRaw: _amountRaw, ...rest }) => rest);
   const sumRounded = Number(items.reduce((sum, it) => sum + it.amount, 0).toFixed(2));
   const diff = Number((total - sumRounded).toFixed(2));
   if (items.length > 0 && diff !== 0) {

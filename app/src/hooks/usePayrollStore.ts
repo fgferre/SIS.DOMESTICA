@@ -48,7 +48,7 @@ interface PayrollState {
 const INITIAL_VERSION = 5;
 
 const round2 = (n: number) => Number(n.toFixed(2));
-const newId = () => (globalThis.crypto as any)?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+const newId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
 
 const monthKey = (year: number, month: number) => `${year}-${String(month).padStart(2, '0')}-01`;
 
@@ -917,8 +917,10 @@ export const usePayrollStore = create<PayrollState>()(
     {
       name: 'sis-domestica-storage', // key in local storage
       version: INITIAL_VERSION,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       migrate: (persistedState: any, _version) => {
         if (!persistedState || typeof persistedState !== 'object') return persistedState;
+        /* eslint-disable @typescript-eslint/no-explicit-any */
 
         const rootLooksLikeYears =
           !persistedState.years &&
@@ -927,7 +929,7 @@ export const usePayrollStore = create<PayrollState>()(
             Object.keys(persistedState).find(k => /^\d{4}$/.test(k)) as string
           ] === 'object';
 
-        const years =
+        const years: any =
           persistedState.years && typeof persistedState.years === 'object'
             ? persistedState.years
             : rootLooksLikeYears
@@ -1141,6 +1143,7 @@ export const usePayrollStore = create<PayrollState>()(
           employee,
           salaryEvents,
         };
+        /* eslint-enable @typescript-eslint/no-explicit-any */
       },
       partialize: state => ({
         version: state.version,

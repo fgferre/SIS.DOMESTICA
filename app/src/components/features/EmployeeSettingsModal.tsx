@@ -18,8 +18,7 @@ export function EmployeeSettingsModal({ isOpen, onClose }: EmployeeSettingsModal
   const { employee, updateEmployee, salaryEvents, addSalaryEvent, removeSalaryEvent } =
     usePayrollStore();
 
-  const newId = () =>
-    (globalThis.crypto as any)?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+  const newId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
 
   const sortedEvents = useMemo(
     () => [...salaryEvents].sort((a, b) => a.effectiveMonth.localeCompare(b.effectiveMonth)),
@@ -41,10 +40,14 @@ export function EmployeeSettingsModal({ isOpen, onClose }: EmployeeSettingsModal
       updateEmployee({ terminationDate: undefined, terminationType: undefined });
       return;
     }
-    updateEmployee({ terminationDate: new Date().toISOString().slice(0, 10), terminationType: 'employer' });
+    updateEmployee({
+      terminationDate: new Date().toISOString().slice(0, 10),
+      terminationType: 'employer',
+    });
   };
 
-  const canAdd = /^\d{4}-\d{2}$/.test(newEventMonth) && Number.isFinite(newEventNet) && newEventNet > 0;
+  const canAdd =
+    /^\d{4}-\d{2}$/.test(newEventMonth) && Number.isFinite(newEventNet) && newEventNet > 0;
 
   const handleAddEvent = () => {
     if (!canAdd) return;
@@ -81,7 +84,9 @@ export function EmployeeSettingsModal({ isOpen, onClose }: EmployeeSettingsModal
               type="number"
               min={0}
               value={employee.dependents ?? 0}
-              onChange={e => updateEmployee({ dependents: Math.max(0, Number(e.target.value || 0)) })}
+              onChange={e =>
+                updateEmployee({ dependents: Math.max(0, Number(e.target.value || 0)) })
+              }
               className="px-3 py-2 rounded-md shadow-sm bg-black/30 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary font-mono text-right"
             />
           </div>

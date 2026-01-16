@@ -19,19 +19,19 @@ export function CurrencyInput({
 }: CurrencyInputProps) {
   const [displayValue, setDisplayValue] = useState('');
 
-  useEffect(() => {
-    // Format initial value
-    if (value !== undefined) {
-      setDisplayValue(formatValue(value));
-    }
-  }, [value]);
-
   const formatValue = (val: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
     }).format(val);
   };
+
+  useEffect(() => {
+    // Format initial value
+    if (value !== undefined) {
+      setDisplayValue(formatValue(value));
+    }
+  }, [value]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let inputValue = e.target.value;
@@ -48,7 +48,9 @@ export function CurrencyInput({
 
   return (
     <div className="flex flex-col space-y-1">
-      {label && <label className="text-sm font-medium text-slate-700 dark:text-gray-200">{label}</label>}
+      {label && (
+        <label className="text-sm font-medium text-slate-700 dark:text-gray-200">{label}</label>
+      )}
       <input
         type="text"
         value={displayValue}

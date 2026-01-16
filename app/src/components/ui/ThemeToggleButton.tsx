@@ -23,4 +23,3 @@ export function ThemeToggleButton({ className }: { className?: string }) {
     </button>
   );
 }
-

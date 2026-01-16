@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { usePayrollStore } from '@/hooks/usePayrollStore';
 import { EmployerService } from '@/services/EmployerService';
-import { LedgerTable } from '@/components/features/LedgerTableV2';
-import { SummaryCards } from '@/components/features/SummaryCardsV2';
+import { LedgerTable } from '@/components/features/LedgerTable';
+import { SummaryCards } from '@/components/features/SummaryCards';
 import { ThemeToggleButton } from '@/components/ui/ThemeToggleButton';
 import { Icon } from '@/components/ui/Icon';
 import { EmployeeSettingsModal } from '@/components/features/EmployeeSettingsModal';
@@ -17,6 +17,8 @@ import { ToastProvider } from '@/components/ui/Toast';
 import { ConfettiOverlay } from '@/components/ui/ConfettiOverlay';
 import { SystemBackground } from '@/components/ui/SystemBackground';
 import { useAutoSave } from '@/hooks/useAutoSave';
+
+type InviteInfo = Awaited<ReturnType<typeof EmployerService.getInviteByToken>>;
 
 export default function App() {
   const {
@@ -37,7 +39,7 @@ export default function App() {
 
   // Invite state
   const [inviteToken, setInviteToken] = useState<string | null>(null);
-  const [inviteInfo, setInviteInfo] = useState<any>(null);
+  const [inviteInfo, setInviteInfo] = useState<InviteInfo | null>(null);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [processingInvite, setProcessingInvite] = useState(false);
 
@@ -73,8 +75,9 @@ export default function App() {
     try {
       await EmployerService.acceptInvite(inviteToken);
       window.location.reload();
-    } catch (err: any) {
-      alert(err.message || 'Erro ao aceitar convite');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro ao aceitar convite';
+      alert(message);
     } finally {
       setProcessingInvite(false);
       setShowInviteModal(false);
@@ -155,9 +158,16 @@ export default function App() {
   // 3) Dashboard
   return (
     <ToastProvider>
-      <EmployeeSettingsModal isOpen={isEmployeeModalOpen} onClose={() => setIsEmployeeModalOpen(false)} />
+      <EmployeeSettingsModal
+        isOpen={isEmployeeModalOpen}
+        onClose={() => setIsEmployeeModalOpen(false)}
+      />
 
-      <ConfettiOverlay triggerId={lastCelebration?.id} durationMs={1400} onDone={clearCelebration} />
+      <ConfettiOverlay
+        triggerId={lastCelebration?.id}
+        durationMs={1400}
+        onDone={clearCelebration}
+      />
 
       <SystemBackground mode="app" />
 
@@ -171,16 +181,19 @@ export default function App() {
             <h3 className="text-xl font-display font-bold text-slate-900 dark:text-white mb-2 uppercase tracking-wide">
               Convite para família
             </h3>
-            <p className="text-slate-700 dark:text-gray-300 mb-6">
+            <p className="text-slate-700 dark:text-slate-200 mb-6">
               Você foi convidado para gerenciar a família{' '}
-              <strong className="text-slate-900 dark:text-white">{inviteInfo.employers?.name}</strong>.
+              <strong className="text-slate-900 dark:text-white">
+                {inviteInfo.employers?.name}
+              </strong>
+              .
             </p>
 
             {user ? (
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowInviteModal(false)}
-                  className="flex-1 px-4 py-2 rounded-lg transition-all text-slate-700 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 border border-black/10 dark:border-white/15"
+                  className="flex-1 px-4 py-2 rounded-lg transition-all text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 border border-black/10 dark:border-white/15"
                 >
                   Cancelar
                 </button>
@@ -200,7 +213,7 @@ export default function App() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => setShowInviteModal(false)}
-                    className="flex-1 px-4 py-2 rounded-lg transition-all text-slate-700 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 border border-black/10 dark:border-white/15"
+                    className="flex-1 px-4 py-2 rounded-lg transition-all text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 border border-black/10 dark:border-white/15"
                   >
                     Cancelar
                   </button>
@@ -235,7 +248,7 @@ export default function App() {
                     <p className="text-[10px] text-primary tracking-[0.3em] font-semibold uppercase">
                       Gestão inteligente
                     </p>
-                    <span className="text-[10px] border border-black/10 dark:border-white/10 px-2 py-0.5 rounded bg-white/60 dark:bg-black/20 font-bold text-slate-700 dark:text-gray-200">
+                    <span className="text-[10px] border border-black/10 dark:border-white/10 px-2 py-0.5 rounded bg-white/60 dark:bg-black/20 font-bold text-slate-700 dark:text-slate-100">
                       {selectedEmployee.name}
                     </span>
                   </div>
@@ -250,7 +263,7 @@ export default function App() {
 
               <button
                 onClick={() => setSelectedEmployee(null)}
-                className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg glass-panel text-slate-700 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white hover:border-primary hover:shadow-neon-purple transition-all duration-300"
+                className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg glass-panel text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:border-primary hover:shadow-neon-purple transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background-light dark:focus-visible:ring-offset-background-dark"
                 title="Trocar família/funcionário"
               >
                 <Icon name="domain" size={18} />
@@ -260,7 +273,7 @@ export default function App() {
               <div className="flex items-center gap-2 bg-white/60 dark:bg-glass-bg rounded-lg p-1.5 border border-black/10 dark:border-white/10 backdrop-blur-md shadow-lg">
                 <button
                   onClick={() => handleYearChange(-1)}
-                  className="w-9 h-9 flex items-center justify-center rounded hover:bg-black/5 dark:hover:bg-white/10 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors border border-transparent hover:border-black/10 dark:hover:border-white/5"
+                  className="w-9 h-9 flex items-center justify-center rounded hover:bg-black/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors border border-transparent hover:border-black/10 dark:hover:border-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background-light dark:focus-visible:ring-offset-background-dark"
                   title="Ano anterior"
                 >
                   <Icon name="chevron_left" size={18} />
@@ -270,7 +283,7 @@ export default function App() {
                 </span>
                 <button
                   onClick={() => handleYearChange(1)}
-                  className="w-9 h-9 flex items-center justify-center rounded hover:bg-black/5 dark:hover:bg-white/10 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors border border-transparent hover:border-black/10 dark:hover:border-white/5"
+                  className="w-9 h-9 flex items-center justify-center rounded hover:bg-black/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors border border-transparent hover:border-black/10 dark:hover:border-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background-light dark:focus-visible:ring-offset-background-dark"
                   title="Próximo ano"
                 >
                   <Icon name="chevron_right" size={18} />
@@ -281,7 +294,7 @@ export default function App() {
 
               <button
                 onClick={() => setIsEmployeeModalOpen(true)}
-                className="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:border-primary hover:shadow-neon-purple transition-all duration-300"
+                className="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-primary hover:shadow-neon-purple transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background-light dark:focus-visible:ring-offset-background-dark"
                 title="Cadastro e Eventos"
               >
                 <Icon name="settings" size={20} />
@@ -289,7 +302,7 @@ export default function App() {
 
               <button
                 onClick={() => handleSignOut()}
-                className="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:border-accent hover:shadow-neon-red transition-all duration-300"
+                className="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-accent hover:shadow-neon-red transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background-light dark:focus-visible:ring-offset-background-dark"
                 title={`Sair de ${user.email}`}
               >
                 <Icon name="logout" size={20} />

@@ -63,8 +63,14 @@ export function AnimatedCollapse({
 
   return (
     <div
-      className={cn('overflow-hidden transition-[height] ease-in-out will-change-[height]', className)}
-      style={{ height: height === 'auto' ? 'auto' : `${height}px`, transitionDuration: `${durationMs}ms` }}
+      className={cn(
+        'overflow-hidden transition-[height] ease-in-out will-change-[height]',
+        className
+      )}
+      style={{
+        height: height === 'auto' ? 'auto' : `${height}px`,
+        transitionDuration: `${durationMs}ms`,
+      }}
     >
       <div ref={innerRef} className="transform-gpu">
         {children}

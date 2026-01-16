@@ -31,4 +31,3 @@ export function useTheme() {
 
   return useMemo(() => ({ theme, setTheme, toggleTheme }), [theme, toggleTheme]);
 }
-

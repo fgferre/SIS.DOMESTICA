@@ -12,7 +12,7 @@ export interface Employee {
   name: string;
   role: string;
   employer_id: string;
-  payroll_data?: any;
+  payroll_data?: Record<string, unknown> | null;
 }
 
 export const EmployerService = {
@@ -41,9 +41,12 @@ export const EmployerService = {
 
     // Merge results
     const employers = [...(owned || [])];
-    memberOf?.forEach((m: any) => {
-      if (!employers.find(e => e.id === m.employers.id)) {
-        employers.push(m.employers);
+    type EmployerMemberRow = { employers: Employer | null };
+    (memberOf as unknown as EmployerMemberRow[] | null)?.forEach(m => {
+      const employer = m.employers;
+      if (!employer) return;
+      if (!employers.find(e => e.id === employer.id)) {
+        employers.push(employer);
       }
     });
 
@@ -99,7 +102,7 @@ export const EmployerService = {
   },
 
   // 5. Salvar Dados do Funcionário (O Save Game)
-  async saveEmployeeData(employeeId: string, payrollData: any) {
+  async saveEmployeeData(employeeId: string, payrollData: unknown) {
     const { error } = await supabase
       .from('employees')
       .update({

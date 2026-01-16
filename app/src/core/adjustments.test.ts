@@ -51,8 +51,8 @@ describe('Adjustments Engine (Reverse Calc & Provisions)', () => {
     });
   });
 
-    describe('calculateBonusPot', () => {
-      it('should calculate bonus pot correctly', () => {
+  describe('calculateBonusPot', () => {
+    it('should calculate bonus pot correctly', () => {
       // Gross = 1000 (abaixo do salário mínimo, mas ok para teste)
       // INSS Empregado = 75 (7.5%)
       // IRRF = 0 (base muito baixa)

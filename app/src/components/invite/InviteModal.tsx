@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, UserPlus, Loader2, Trash2, Link, Share2 } from 'lucide-react';
 import { EmployerService } from '@/services/EmployerService';
@@ -25,23 +25,24 @@ export function InviteModal({ isOpen, employerId, employerName, onClose }: Invit
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      loadInvites();
-    }
-  }, [isOpen, employerId]);
-
-  const loadInvites = async () => {
+  const loadInvites = useCallback(async () => {
     setLoadingInvites(true);
     try {
       const data = await EmployerService.getInvitesForEmployer(employerId);
       setInvites(data);
-    } catch (err) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
       console.error('Failed to load invites:', err);
     } finally {
       setLoadingInvites(false);
     }
-  };
+  }, [employerId]);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadInvites();
+    }
+  }, [isOpen, loadInvites]);
 
   const handleCreateInvite = async () => {
     if (!email.trim() || !email.includes('@')) {
@@ -57,13 +58,17 @@ export function InviteModal({ isOpen, employerId, employerName, onClose }: Invit
       await createPromise;
       setEmail('');
       await loadInvites();
-    } catch (err: any) {
-      if (err.message && err.message.includes('Já existe um convite')) {
-        // Se já existe, apenas recarrega para mostrar na lista
-        setError('Já existe um convite para este email. Veja abaixo.');
-        await loadInvites();
+    } catch (err) {
+      if (err instanceof Error) {
+        if (err.message && err.message.includes('Já existe um convite')) {
+          // Se já existe, apenas recarrega para mostrar na lista
+          setError('Já existe um convite para este email. Veja abaixo.');
+          await loadInvites();
+        } else {
+          setError(err.message || 'Erro ao criar convite.');
+        }
       } else {
-        setError(err.message || 'Erro ao criar convite.');
+        setError('Erro ao criar convite.');
       }
     } finally {
       setLoading(false);
@@ -76,7 +81,7 @@ export function InviteModal({ isOpen, employerId, employerName, onClose }: Invit
     try {
       await EmployerService.cancelInvite(inviteId);
       setInvites(prev => prev.filter(i => i.id !== inviteId));
-    } catch (err) {
+    } catch {
       alert('Erro ao cancelar convite.');
     }
   };

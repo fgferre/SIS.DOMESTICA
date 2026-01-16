@@ -52,19 +52,25 @@ export function LandingScreen({ onLogin, onSignup }: LandingScreenProps) {
               <div className="text-primary font-bold uppercase tracking-widest text-[10px]">
                 Ledger
               </div>
-              <div className="text-slate-700 dark:text-gray-300 text-sm mt-1">Visão mensal clara, sem perder detalhes.</div>
+              <div className="text-slate-700 dark:text-gray-300 text-sm mt-1">
+                Visão mensal clara, sem perder detalhes.
+              </div>
             </div>
             <div className="glass-panel clip-corner p-4 border border-black/10 dark:border-white/10">
               <div className="text-secondary font-bold uppercase tracking-widest text-[10px]">
                 Automação
               </div>
-              <div className="text-slate-700 dark:text-gray-300 text-sm mt-1">Auto-save e status de sincronização.</div>
+              <div className="text-slate-700 dark:text-gray-300 text-sm mt-1">
+                Auto-save e status de sincronização.
+              </div>
             </div>
             <div className="glass-panel clip-corner p-4 border border-black/10 dark:border-white/10">
               <div className="text-success font-bold uppercase tracking-widest text-[10px]">
                 Segurança
               </div>
-              <div className="text-slate-700 dark:text-gray-300 text-sm mt-1">Sem regressão de dados ou ações.</div>
+              <div className="text-slate-700 dark:text-gray-300 text-sm mt-1">
+                Sem regressão de dados ou ações.
+              </div>
             </div>
           </div>
 

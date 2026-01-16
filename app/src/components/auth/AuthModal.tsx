@@ -46,8 +46,9 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
         if (error) throw error;
         setMessage('Verifique seu email para confirmar o cadastro!');
       }
-    } catch (err: any) {
-      setError(err.message || 'Ocorreu um erro.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Ocorreu um erro.';
+      setError(message);
     } finally {
       setLoading(false);
     }

@@ -223,7 +223,6 @@ export function AmbientWebGL2({
       gl.deleteShader(vs);
       gl.deleteShader(fs);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, paused]);
 
   if (!enabled) return null;
@@ -236,4 +235,3 @@ export function AmbientWebGL2({
     />
   );
 }
-

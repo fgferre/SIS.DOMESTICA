@@ -31,6 +31,10 @@
   --glass-highlight: rgba(0, 0, 0, 0.05);
   --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
   --glass-blur: 12px;
+
+  /* Clip-path friendly elevation (uses drop-shadow so it follows the shape). */
+  --elev-clip-filter: drop-shadow(0 12px 22px rgba(15, 23, 42, 0.14))
+    drop-shadow(0 2px 6px rgba(15, 23, 42, 0.08));
 }
 
 html.dark {
@@ -42,6 +46,9 @@ html.dark {
   --glass-highlight: rgba(255, 255, 255, 0.05);
   --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.35);
   --glass-blur: 16px;
+
+  --elev-clip-filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 1px 0 rgba(255, 255, 255, 0.04));
 }
 
 @layer utilities {
@@ -88,6 +95,20 @@ html.dark {
       0 100%,
       0 15px
     );
+  }
+
+  .clip-shadow {
+    filter: var(--elev-clip-filter);
+  }
+
+  .month-chip-row > * {
+    display: inline-flex;
+    align-items: center;
+    height: 1.5rem; /* h-6 */
+    padding-top: 0;
+    padding-bottom: 0;
+    white-space: nowrap;
+    flex: 0 0 auto;
   }
 
   .scanline-overlay {

@@ -14,7 +14,8 @@ export function AuditPanel({ entry, viewMode, dependents }: AuditPanelProps) {
   const breakdown = entry.bonusBreakdown;
   const date = new Date(entry.year, entry.month - 1, 1);
   const table = getTaxTableForDate(date);
-  const provisionsBase = entry.grossSalary / 12 + entry.grossSalary / 3 / 12 + entry.grossSalary / 12;
+  const provisionsBase =
+    entry.grossSalary / 12 + entry.grossSalary / 3 / 12 + entry.grossSalary / 12;
   const employerChargesRate =
     table.employerCharges.inssPatronal +
     table.employerCharges.fgtsDeposit +
@@ -54,7 +55,8 @@ export function AuditPanel({ entry, viewMode, dependents }: AuditPanelProps) {
       : undefined;
 
   if (viewMode === 'caixa') {
-    const inssDetail = entry.grossSalary > 0 ? getINSSBreakdown(entry.grossSalary, date) : undefined;
+    const inssDetail =
+      entry.grossSalary > 0 ? getINSSBreakdown(entry.grossSalary, date) : undefined;
     const irrfDetail =
       entry.grossSalary > 0
         ? getIRRFBreakdown(entry.grossSalary, entry.inssEmployee, dependents, date)
@@ -65,27 +67,27 @@ export function AuditPanel({ entry, viewMode, dependents }: AuditPanelProps) {
         {/* Coluna 1: Raio-X da Guia DAE */}
         <Card className="bg-purple-50 border-l-4 border-l-purple-500">
           <CardContent className="pt-4 space-y-2 text-sm">
-            <h4 className="font-bold text-purple-800 border-b border-purple-200 pb-1 mb-2">
+            <h4 className="font-bold text-purple-900 dark:text-purple-200 border-b border-purple-200 pb-1 mb-2">
               Raio-X da Guia DAE (Boleto)
             </h4>
-            <p className="text-[10px] text-purple-600 mb-2">
+            <p className="text-[10px] text-slate-700 dark:text-slate-300 mb-2">
               Composição exata do valor a pagar no eSocial
             </p>
             {breakdown ? (
               <>
-                <div className="flex justify-between text-purple-700">
+                <div className="flex justify-between text-purple-900 dark:text-purple-200">
                   <span>(+) INSS Patronal (8%):</span>
                   <span>{formatCurrency(breakdown.inssPatronal)}</span>
                 </div>
-                <div className="flex justify-between text-purple-700">
+                <div className="flex justify-between text-purple-900 dark:text-purple-200">
                   <span>(+) FGTS Depósito (8%):</span>
                   <span>{formatCurrency(breakdown.fgtsDeposit)}</span>
                 </div>
-                <div className="flex justify-between text-purple-700">
+                <div className="flex justify-between text-purple-900 dark:text-purple-200">
                   <span>(+) FGTS Multa (3.2%):</span>
                   <span>{formatCurrency(breakdown.fgtsFineRef)}</span>
                 </div>
-                <div className="flex justify-between text-purple-700">
+                <div className="flex justify-between text-purple-900 dark:text-purple-200">
                   <span>(+) Seguro SAT (0.8%):</span>
                   <span>{formatCurrency(breakdown.sat)}</span>
                 </div>
@@ -101,10 +103,10 @@ export function AuditPanel({ entry, viewMode, dependents }: AuditPanelProps) {
 
                 {inssDetail && inssDetail.items.length > 0 && (
                   <details className="mt-2" open>
-                    <summary className="cursor-pointer text-[10px] text-purple-700">
+                    <summary className="cursor-pointer text-[10px] text-purple-900 dark:text-purple-200">
                       Detalhe INSS (por faixa)
                     </summary>
-                    <div className="mt-2 space-y-1 text-[10px] text-purple-700">
+                    <div className="mt-2 space-y-1 text-[10px] text-purple-900 dark:text-purple-200">
                       {inssDetail.items.map((it, idx) => (
                         <div key={idx} className="flex justify-between">
                           <span>
@@ -119,10 +121,10 @@ export function AuditPanel({ entry, viewMode, dependents }: AuditPanelProps) {
 
                 {irrfDetail && (
                   <details className="mt-2" open>
-                    <summary className="cursor-pointer text-[10px] text-purple-700">
+                    <summary className="cursor-pointer text-[10px] text-purple-900 dark:text-purple-200">
                       Detalhe IRRF ({irrfDetail.method === 'simplified' ? 'simplificado' : 'legal'})
                     </summary>
-                    <div className="mt-2 space-y-1 text-[10px] text-purple-700">
+                    <div className="mt-2 space-y-1 text-[10px] text-purple-900 dark:text-purple-200">
                       <div className="flex justify-between">
                         <span>Base legal:</span>
                         <span>{formatCurrency(irrfDetail.legalBase)}</span>
@@ -152,7 +154,9 @@ export function AuditPanel({ entry, viewMode, dependents }: AuditPanelProps) {
                 </div>
               </>
             ) : (
-              <p className="text-gray-400 text-xs">Insira um salário para calcular</p>
+              <p className="text-slate-600 dark:text-slate-400 text-xs">
+                Insira um salário para calcular
+              </p>
             )}
           </CardContent>
         </Card>
@@ -178,7 +182,7 @@ export function AuditPanel({ entry, viewMode, dependents }: AuditPanelProps) {
             {entry.bonusPayout > 0 && (
               <>
                 {bonusDueDate && (
-                  <div className="flex justify-between text-[10px] text-gray-500">
+                  <div className="flex justify-between text-[10px] text-slate-600 dark:text-slate-300">
                     <span>Venc. bônus:</span>
                     <span>{bonusDueDate.toLocaleDateString('pt-BR')}</span>
                   </div>
@@ -191,7 +195,7 @@ export function AuditPanel({ entry, viewMode, dependents }: AuditPanelProps) {
                   entry.scheduledBonusPayout > 0 ||
                   (entry.anticipatedBonus || 0) > 0 ||
                   entry.terminationPayout > 0) && (
-                  <div className="mt-1 space-y-0.5 text-[10px] text-gray-500">
+                  <div className="mt-1 space-y-0.5 text-[10px] text-slate-600 dark:text-slate-300">
                     {entry.bonusCarryDue > 0 && (
                       <div className="flex justify-between">
                         <span>Bônus vencido (carry):</span>
@@ -269,16 +273,18 @@ export function AuditPanel({ entry, viewMode, dependents }: AuditPanelProps) {
             </h4>
             {breakdown ? (
               <>
-                <div className="flex justify-between text-emerald-700 font-medium border-b border-emerald-100 pb-1 mb-1">
+                <div className="flex justify-between text-emerald-700 dark:text-emerald-200 font-medium border-b border-emerald-100 pb-1 mb-1">
                   <span>1. FGTS Depósito (100%):</span>
                   <span className="font-bold">{formatCurrency(breakdown.fgtsDeposit)}</span>
                 </div>
-                <div className="flex justify-between text-[10px] text-gray-500">
+                <div className="flex justify-between text-[10px] text-slate-600 dark:text-slate-300">
                   <span>FGTS Multa legal (ref DAE):</span>
                   <span>{formatCurrency(breakdown.fgtsFineRef)}</span>
                 </div>
 
-                <div className="text-xs text-gray-500 mt-2 mb-1">2. Economia (Governo) e Split</div>
+                <div className="text-xs text-slate-600 dark:text-slate-300 mt-2 mb-1">
+                  2. Economia (Governo) e Split
+                </div>
                 <div className="pl-2 text-xs space-y-1 text-emerald-600 border-l-2 border-emerald-100">
                   <div className="flex justify-between">
                     <span>Economia Empregador (INSS+SAT):</span>
@@ -292,7 +298,7 @@ export function AuditPanel({ entry, viewMode, dependents }: AuditPanelProps) {
                     <span>Economia Total (Governo):</span>
                     <span>{formatCurrency(splitBaseSafe)}</span>
                   </div>
-                  <div className="flex justify-between font-bold text-emerald-700">
+                  <div className="flex justify-between font-bold text-emerald-700 dark:text-emerald-200">
                     <span>Bônus sobre Economia (50%):</span>
                     <span>+ {formatCurrency(breakdown.taxSplit)}</span>
                   </div>
@@ -310,10 +316,10 @@ export function AuditPanel({ entry, viewMode, dependents }: AuditPanelProps) {
                   </div>
 
                   <details className="mt-2" open>
-                    <summary className="cursor-pointer text-[10px] text-emerald-700">
+                    <summary className="cursor-pointer text-[10px] text-emerald-700 dark:text-emerald-200">
                       Impostos/FGTS (linha a linha)
                     </summary>
-                    <div className="mt-2 space-y-1 text-[10px] text-emerald-700">
+                    <div className="mt-2 space-y-1 text-[10px] text-emerald-700 dark:text-emerald-200">
                       <div className="flex justify-between">
                         <span>INSS Patronal:</span>
                         <span>{formatCurrency(breakdown.inssPatronal)}</span>
@@ -358,7 +364,9 @@ export function AuditPanel({ entry, viewMode, dependents }: AuditPanelProps) {
                 </div>
               </>
             ) : (
-              <p className="text-gray-400 text-xs">Insira um salário para calcular</p>
+              <p className="text-slate-600 dark:text-slate-400 text-xs">
+                Insira um salário para calcular
+              </p>
             )}
           </CardContent>
         </Card>
@@ -391,10 +399,10 @@ export function AuditPanel({ entry, viewMode, dependents }: AuditPanelProps) {
             <span>{formatCurrency(entry.grossSalary / 12)}</span>
           </div>
           <details className="mt-2" open>
-            <summary className="cursor-pointer text-[10px] text-purple-700">
+            <summary className="cursor-pointer text-[10px] text-purple-900 dark:text-purple-200">
               Encargos s/ Provisões (detalhado)
             </summary>
-            <div className="mt-2 space-y-1 text-[10px] text-purple-700">
+            <div className="mt-2 space-y-1 text-[10px] text-purple-900 dark:text-purple-200">
               <div className="flex justify-between">
                 <span>Base provisões:</span>
                 <span>{formatCurrency(provisionsBase)}</span>
@@ -435,7 +443,9 @@ export function AuditPanel({ entry, viewMode, dependents }: AuditPanelProps) {
           </div>
           <div className="flex justify-between text-[10px] text-orange-700">
             <span>Diferença:</span>
-            <span>{formatCurrency(Number((entry.provisions - provisionsTotalCalculated).toFixed(2)))}</span>
+            <span>
+              {formatCurrency(Number((entry.provisions - provisionsTotalCalculated).toFixed(2)))}
+            </span>
           </div>
         </CardContent>
       </Card>
@@ -450,32 +460,38 @@ export function AuditPanel({ entry, viewMode, dependents }: AuditPanelProps) {
             <span>Salário Bruto:</span>
             <span>{formatCurrency(entry.grossSalary)}</span>
           </div>
-            {breakdown && (
-              <div className="flex justify-between">
-                <span>Encargos Imediatos (DAE):</span>
-                <span>
+          {breakdown && (
+            <div className="flex justify-between">
+              <span>Encargos Imediatos (DAE):</span>
+              <span>
                 {formatCurrency(
-                  breakdown.inssPatronal + breakdown.sat + breakdown.fgtsDeposit + breakdown.fgtsFineRef
+                  breakdown.inssPatronal +
+                    breakdown.sat +
+                    breakdown.fgtsDeposit +
+                    breakdown.fgtsFineRef
                 )}
-                </span>
-              </div>
-            )}
+              </span>
+            </div>
+          )}
           <div className="flex justify-between text-orange-600 font-bold">
             <span>Provisões Futuras:</span>
             <span>{formatCurrency(entry.provisions)}</span>
           </div>
           <div className="flex justify-between font-bold text-lg text-slate-900 border-t border-slate-200 pt-2 mt-2">
             <span>Total Competência:</span>
-              <span>
-                {formatCurrency(
-                  entry.grossSalary +
+            <span>
+              {formatCurrency(
+                entry.grossSalary +
                   (breakdown
-                    ? breakdown.inssPatronal + breakdown.sat + breakdown.fgtsDeposit + breakdown.fgtsFineRef
+                    ? breakdown.inssPatronal +
+                      breakdown.sat +
+                      breakdown.fgtsDeposit +
+                      breakdown.fgtsFineRef
                     : 0) +
                   entry.provisions
-                )}
-              </span>
-            </div>
+              )}
+            </span>
+          </div>
         </CardContent>
       </Card>
 
@@ -485,18 +501,18 @@ export function AuditPanel({ entry, viewMode, dependents }: AuditPanelProps) {
           <h4 className="font-bold text-emerald-800 border-b border-emerald-200 pb-1 mb-2">
             Memória do Bônus
           </h4>
-            {breakdown ? (
-              <>
-                <div className="flex justify-between text-xs border-b pb-1 mb-1 font-bold text-emerald-700">
+          {breakdown ? (
+            <>
+              <div className="flex justify-between text-xs border-b pb-1 mb-1 font-bold text-emerald-700 dark:text-emerald-200">
                 <span>1. FGTS Depósito (8%):</span>
                 <span>{formatCurrency(breakdown.fgtsDeposit)}</span>
-                </div>
-                <div className="flex justify-between text-[10px] text-gray-500">
-                  <span>FGTS Multa legal (ref DAE):</span>
-                  <span>{formatCurrency(breakdown.fgtsFineRef)}</span>
-                </div>
+              </div>
+              <div className="flex justify-between text-[10px] text-slate-600 dark:text-slate-300">
+                <span>FGTS Multa legal (ref DAE):</span>
+                <span>{formatCurrency(breakdown.fgtsFineRef)}</span>
+              </div>
 
-              <div className="text-xs text-gray-500 mt-2 mb-1 border-t pt-1">
+              <div className="text-xs text-slate-600 dark:text-slate-300 mt-2 mb-1 border-t pt-1">
                 2. Economia (Governo) e Split:
               </div>
               <div className="pl-2 space-y-1 text-[10px] text-emerald-600 border-l border-emerald-200">
@@ -512,7 +528,7 @@ export function AuditPanel({ entry, viewMode, dependents }: AuditPanelProps) {
                   <span>Economia Total (Governo):</span>
                   <span>{formatCurrency(splitBaseSafe)}</span>
                 </div>
-                <div className="flex justify-between font-bold text-emerald-700">
+                <div className="flex justify-between font-bold text-emerald-700 dark:text-emerald-200">
                   <span>Bônus sobre Economia (50%):</span>
                   <span>+ {formatCurrency(breakdown.taxSplit)}</span>
                 </div>
@@ -530,10 +546,10 @@ export function AuditPanel({ entry, viewMode, dependents }: AuditPanelProps) {
                 </div>
 
                 <details className="mt-2" open>
-                  <summary className="cursor-pointer text-[10px] text-emerald-700">
+                  <summary className="cursor-pointer text-[10px] text-emerald-700 dark:text-emerald-200">
                     Impostos/FGTS (linha a linha)
                   </summary>
-                  <div className="mt-2 space-y-1 text-[10px] text-emerald-700">
+                  <div className="mt-2 space-y-1 text-[10px] text-emerald-700 dark:text-emerald-200">
                     <div className="flex justify-between">
                       <span>INSS Patronal:</span>
                       <span>{formatCurrency(breakdown.inssPatronal)}</span>
@@ -574,7 +590,9 @@ export function AuditPanel({ entry, viewMode, dependents }: AuditPanelProps) {
               </div>
             </>
           ) : (
-            <p className="text-gray-400 text-xs">Insira um salário para calcular</p>
+            <p className="text-slate-600 dark:text-slate-400 text-xs">
+              Insira um salário para calcular
+            </p>
           )}
         </CardContent>
       </Card>

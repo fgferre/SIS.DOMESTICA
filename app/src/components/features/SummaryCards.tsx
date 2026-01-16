@@ -1,104 +1,142 @@
-import { formatCurrency } from '@/utils/utils';
-import { TrendingUp, TrendingDown, PiggyBank } from 'lucide-react';
+import { useMemo } from 'react';
 import { usePayrollStore } from '@/hooks/usePayrollStore';
+import { formatCurrency } from '@/utils/utils';
 import { TiltCard } from '@/components/ui/TiltCard';
+import { Icon } from '@/components/ui/Icon';
 
 export function SummaryCards() {
   const { years, activeYear } = usePayrollStore();
   const currentYearData = years[activeYear];
 
-  if (!currentYearData) return null;
+  const aggregates = useMemo(() => {
+    if (!currentYearData) return null;
 
-  // Calculate Aggregates
-  const totalCost = currentYearData.ledger.reduce((acc, entry) => {
-    // Cost to Employer = Gross + DAE - Employee Deductions (because they are paid to Gov via DAE, but withheld from Net)
-    // Actually, Employer Cost = Gross + EmployerCharges.
-    // DAE = EmployerCharges + EmployeeTaxes.
-    // Net = Gross - EmployeeTaxes.
-    // So Cost = Net + DAE.
-    return acc + (entry.netSalary + entry.dae);
-  }, 0);
+    const totalCost = currentYearData.ledger.reduce(
+      (acc, entry) => acc + (entry.netSalary + entry.dae),
+      0
+    );
+    const bonusBalance = currentYearData.ledger[currentYearData.ledger.length - 1].runningBalance;
+    const totalBonusGenerated = currentYearData.ledger.reduce(
+      (acc, e) => acc + e.monthlyBonus + (e.payment13th?.totalBonus || 0),
+      0
+    );
+    const totalBonusDue = currentYearData.ledger.reduce((acc, e) => acc + (e.bonusPayout || 0), 0);
+    const totalBonusPaid = currentYearData.ledger.reduce((acc, e) => {
+      const payments = e.payments ?? [];
+      const paid = payments
+        .filter(p => p.kind === 'bonus')
+        .reduce((a, p) => a + (Number(p.amount) || 0), 0);
+      const legacyAdvance = payments.some(p => p.kind === 'bonus') ? 0 : e.anticipatedBonus || 0;
+      return acc + paid + legacyAdvance;
+    }, 0);
+    const julScheduled = currentYearData.ledger[6]?.scheduledBonusPayout || 0;
+    const decScheduled = currentYearData.ledger[11]?.scheduledBonusPayout || 0;
 
-  const bonusBalance = currentYearData.ledger[currentYearData.ledger.length - 1].runningBalance;
-  const totalBonusGenerated = currentYearData.ledger.reduce(
-    (acc, e) => acc + e.monthlyBonus + (e.payment13th?.totalBonus || 0),
-    0
-  );
-  const totalBonusDue = currentYearData.ledger.reduce((acc, e) => acc + (e.bonusPayout || 0), 0);
-  const totalBonusPaid = currentYearData.ledger.reduce((acc, e) => {
-    const payments = e.payments ?? [];
-    const paid = payments
-      .filter(p => p.kind === 'bonus')
-      .reduce((a, p) => a + (Number(p.amount) || 0), 0);
-    const legacyAdvance = payments.some(p => p.kind === 'bonus') ? 0 : e.anticipatedBonus || 0;
-    return acc + paid + legacyAdvance;
-  }, 0);
-  const julScheduled = currentYearData.ledger[6]?.scheduledBonusPayout || 0;
-  const decScheduled = currentYearData.ledger[11]?.scheduledBonusPayout || 0;
+    return {
+      totalCost,
+      bonusBalance,
+      totalBonusGenerated,
+      totalBonusDue,
+      totalBonusPaid,
+      scheduled: julScheduled + decScheduled,
+    };
+  }, [currentYearData]);
+
+  if (!currentYearData || !aggregates) return null;
 
   return (
-    <div className="relative grid gap-4 md:grid-cols-4 p-1">
-      <TiltCard className="glass-panel">
-        <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <span className="text-sm font-medium text-gray-600">Custo CLT (Simulado)</span>
-          <TrendingDown className="h-4 w-4 text-red-500" />
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <TiltCard
+        surfaceClassName="glass-panel rounded-xl clip-corner clip-shadow border-l-4 border-l-accent relative group transition-all duration-300 hover:-translate-y-1 hover:bg-white/5"
+        contentClassName="p-6"
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="absolute top-3 right-3 text-accent opacity-70 group-hover:opacity-100 group-hover:-translate-y-1 transition-all">
+          <Icon name="trending_down" size={18} />
         </div>
-        <div>
-          <div className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-700 to-gray-900">
-            {formatCurrency(totalCost)}
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">Líquido + DAE (para auditoria)</p>
+        <h3 className="text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-widest mb-1 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+          Custo CLT (Simulado)
+        </h3>
+        <div className="text-3xl font-display font-black text-slate-900 dark:text-white group-hover:text-accent dark:group-hover:drop-shadow-[0_0_10px_rgba(244,63,94,0.45)] transition-all">
+          {formatCurrency(aggregates.totalCost)}
         </div>
+        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 uppercase tracking-wider">
+          Líquido + DAE (auditoria)
+        </p>
       </TiltCard>
 
-      <TiltCard gradient="bg-gradient-to-br from-blue-400/20 to-indigo-400/20">
-        <div className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-          <span className="text-sm font-medium text-gray-700">Pote de Bônus (Saldo)</span>
-          <PiggyBank className="h-4 w-4 text-blue-600" />
+      <TiltCard
+        surfaceClassName="glass-panel rounded-xl clip-corner clip-shadow border-l-4 border-l-secondary relative group transition-all duration-300 hover:-translate-y-1 hover:bg-white/5"
+        contentClassName="p-6"
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="absolute top-3 right-3 text-secondary opacity-70 group-hover:opacity-100 group-hover:-translate-y-1 transition-all">
+          <Icon name="savings" size={18} />
         </div>
-        <div className="relative z-10">
-          <div className="text-2xl font-bold text-blue-700">{formatCurrency(bonusBalance)}</div>
-          <p className="text-xs text-muted-foreground mt-1">FGTS (100%) + impostos (50%)</p>
+        <h3 className="text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-widest mb-1 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+          Pote de Bônus (Saldo)
+        </h3>
+        <div className="text-3xl font-display font-black text-slate-900 dark:text-white group-hover:text-secondary dark:group-hover:drop-shadow-[0_0_10px_rgba(6,182,212,0.45)] transition-all">
+          {formatCurrency(aggregates.bonusBalance)}
         </div>
+        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 uppercase tracking-wider">
+          FGTS (100%) + impostos (50%)
+        </p>
       </TiltCard>
 
-      <TiltCard className="glass-panel">
-        <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <span className="text-sm font-medium text-gray-600">Média Salário Líquido</span>
-          <TrendingUp className="h-4 w-4 text-emerald-500" />
+      <TiltCard
+        surfaceClassName="glass-panel rounded-xl clip-corner clip-shadow border-l-4 border-l-success relative group transition-all duration-300 hover:-translate-y-1 hover:bg-white/5"
+        contentClassName="p-6"
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-success/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="absolute top-3 right-3 text-success opacity-70 group-hover:opacity-100 group-hover:-translate-y-1 transition-all">
+          <Icon name="trending_up" size={18} />
         </div>
-        <div>
-          <div className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-600">
-            {formatCurrency(currentYearData.ledger.reduce((a, b) => a + b.netSalary, 0) / 12)}
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">Média mensal paga no bolso</p>
+        <h3 className="text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-widest mb-1 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+          Média Salário Líquido
+        </h3>
+        <div className="text-3xl font-display font-black text-slate-900 dark:text-white group-hover:text-success dark:group-hover:drop-shadow-[0_0_10px_rgba(16,185,129,0.45)] transition-all">
+          {formatCurrency(currentYearData.ledger.reduce((a, b) => a + b.netSalary, 0) / 12)}
         </div>
+        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 uppercase tracking-wider">
+          Média mensal no bolso
+        </p>
       </TiltCard>
 
-      <TiltCard className="glass-panel border-l-4 border-l-blue-400">
-        <div className="flex flex-row items-center justify-between space-y-0 pb-2 mb-2">
-          <span className="text-sm font-medium text-gray-700">Fluxo do Pote</span>
-          <PiggyBank className="h-4 w-4 text-blue-600" />
+      <TiltCard
+        surfaceClassName="glass-panel rounded-xl clip-corner clip-shadow border-l-4 border-l-primary relative group transition-all duration-300 hover:-translate-y-1 hover:bg-white/5"
+        contentClassName="p-6"
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="absolute top-3 right-3 text-primary opacity-70 group-hover:opacity-100 group-hover:-translate-y-1 transition-all">
+          <Icon name="pie_chart" size={18} />
         </div>
-        <div className="text-xs space-y-1.5 text-gray-600">
-          <div className="flex justify-between">
-            <span>Gerado (Ano):</span>
-            <span className="font-semibold text-gray-800">
-              {formatCurrency(totalBonusGenerated)}
+        <h3 className="text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-widest mb-3 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+          Fluxo do Pote
+        </h3>
+        <div className="space-y-1 mt-1">
+          <div className="flex justify-between text-xs">
+            <span className="text-slate-600 dark:text-slate-400">Gerado (Ano):</span>
+            <span className="font-mono text-slate-900 dark:text-white font-bold">
+              {formatCurrency(aggregates.totalBonusGenerated)}
             </span>
           </div>
-          <div className="flex justify-between">
-            <span>Devido (Ano):</span>
-            <span className="font-semibold text-gray-800">{formatCurrency(totalBonusDue)}</span>
+          <div className="flex justify-between text-xs">
+            <span className="text-slate-600 dark:text-slate-400">Devido (Ano):</span>
+            <span className="font-mono text-slate-900 dark:text-white font-bold">
+              {formatCurrency(aggregates.totalBonusDue)}
+            </span>
           </div>
-          <div className="flex justify-between">
-            <span>Pago (Ano):</span>
-            <span className="font-semibold text-emerald-600">{formatCurrency(totalBonusPaid)}</span>
+          <div className="flex justify-between text-xs">
+            <span className="text-slate-600 dark:text-slate-400">Pago (Ano):</span>
+            <span className="font-mono text-success font-bold">
+              {formatCurrency(aggregates.totalBonusPaid)}
+            </span>
           </div>
-          <div className="flex justify-between border-t border-gray-200/50 pt-1.5 mt-1">
-            <span>Agendado (Jul/Dez):</span>
-            <span className="font-mono text-gray-700">
-              {formatCurrency(julScheduled + decScheduled)}
+          <div className="flex justify-between text-xs pt-2 border-t border-black/10 dark:border-white/10 mt-2">
+            <span className="text-slate-700 dark:text-slate-200">Agendado (Jul/Dez):</span>
+            <span className="font-mono text-primary font-bold bg-primary/10 px-1 rounded shadow-neon-purple">
+              {formatCurrency(aggregates.scheduled)}
             </span>
           </div>
         </div>

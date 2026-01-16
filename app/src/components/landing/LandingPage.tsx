@@ -62,7 +62,7 @@ export function LandingPage({ onLogin, onSignup }: LandingPageProps) {
   return (
     <div
       ref={containerRef}
-      className="bg-[#050508] min-h-screen text-gray-200 font-body antialiased overflow-x-hidden selection:bg-primary selection:text-white landing-scroll scroll-smooth"
+      className="landing-root bg-[#050508] min-h-screen text-gray-200 font-body antialiased overflow-x-hidden selection:bg-primary selection:text-white landing-scroll scroll-smooth"
     >
       {/* Background Noise & Grid */}
       <div className="fixed inset-0 z-0 pointer-events-none">
