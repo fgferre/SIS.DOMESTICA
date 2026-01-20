@@ -136,14 +136,14 @@ export const EmployerService = {
   // 8. Deletar Família (só se não tiver funcionários)
   async deleteEmployer(employerId: string) {
     // Primeiro verifica se tem funcionários
-    const { data: employees, error: checkError } = await supabase
+    const { count, error: checkError } = await supabase
       .from('employees')
-      .select('id')
+      .select('*', { count: 'exact', head: true })
       .eq('employer_id', employerId);
 
     if (checkError) throw checkError;
 
-    if (employees && employees.length > 0) {
+    if (count !== null && count > 0) {
       throw new Error(
         'Não é possível deletar uma família com funcionários. Delete os funcionários primeiro.'
       );
