@@ -235,11 +235,14 @@ const recalcLedgerForYear = (
   yearData: YearData,
   year: number,
   employee: EmployeeInfo,
-  salaryEvents: SalaryEvent[]
+  salaryEvents: SalaryEvent[],
+  fromMonth: number = 1
 ) => {
   const dependents = employee.dependents;
 
   return yearData.ledger.map(entry => {
+    if (entry.month < fromMonth) return entry;
+
     const { isInEmployment, daysWorked, proRataFactor } = computeEmploymentForMonth(
       employee,
       year,
@@ -393,10 +396,20 @@ export const usePayrollStore = create<PayrollState>()(
           const newYears: PayrollState['years'] = {};
           for (const [yKey, yData] of Object.entries(state.years)) {
             const y = Number(yKey);
-            newYears[y] = {
-              ...yData,
-              ledger: recalcLedgerForYear(yData, y, state.employee, salaryEvents),
-            };
+
+            if (y < year) {
+              newYears[y] = yData;
+            } else if (y === year) {
+              newYears[y] = {
+                ...yData,
+                ledger: recalcLedgerForYear(yData, y, state.employee, salaryEvents, month),
+              };
+            } else {
+              newYears[y] = {
+                ...yData,
+                ledger: recalcLedgerForYear(yData, y, state.employee, salaryEvents, 1),
+              };
+            }
           }
 
           return {
@@ -620,13 +633,27 @@ export const usePayrollStore = create<PayrollState>()(
             event,
           ]);
 
+          const [evYearStr, evMonthStr] = event.effectiveMonth.split('-');
+          const evYear = Number(evYearStr);
+          const evMonth = Number(evMonthStr);
+
           const newYears: PayrollState['years'] = {};
           for (const [yKey, yData] of Object.entries(state.years)) {
             const y = Number(yKey);
-            newYears[y] = {
-              ...yData,
-              ledger: recalcLedgerForYear(yData, y, state.employee, salaryEvents),
-            };
+
+            if (y < evYear) {
+              newYears[y] = yData;
+            } else if (y === evYear) {
+              newYears[y] = {
+                ...yData,
+                ledger: recalcLedgerForYear(yData, y, state.employee, salaryEvents, evMonth),
+              };
+            } else {
+              newYears[y] = {
+                ...yData,
+                ledger: recalcLedgerForYear(yData, y, state.employee, salaryEvents, 1),
+              };
+            }
           }
 
           return { salaryEvents, years: newYears };
@@ -636,15 +663,42 @@ export const usePayrollStore = create<PayrollState>()(
 
       removeSalaryEvent: eventId => {
         set(state => {
+          const removedEvent = state.salaryEvents.find(e => e.id === eventId);
           const salaryEvents = sortSalaryEvents(state.salaryEvents.filter(e => e.id !== eventId));
+
+          let evYear = 0;
+          let evMonth = 1;
+
+          if (removedEvent) {
+            const [y, m] = removedEvent.effectiveMonth.split('-');
+            evYear = Number(y);
+            evMonth = Number(m);
+          }
 
           const newYears: PayrollState['years'] = {};
           for (const [yKey, yData] of Object.entries(state.years)) {
             const y = Number(yKey);
-            newYears[y] = {
-              ...yData,
-              ledger: recalcLedgerForYear(yData, y, state.employee, salaryEvents),
-            };
+
+            if (removedEvent) {
+              if (y < evYear) {
+                newYears[y] = yData;
+              } else if (y === evYear) {
+                newYears[y] = {
+                  ...yData,
+                  ledger: recalcLedgerForYear(yData, y, state.employee, salaryEvents, evMonth),
+                };
+              } else {
+                newYears[y] = {
+                  ...yData,
+                  ledger: recalcLedgerForYear(yData, y, state.employee, salaryEvents, 1),
+                };
+              }
+            } else {
+              newYears[y] = {
+                ...yData,
+                ledger: recalcLedgerForYear(yData, y, state.employee, salaryEvents),
+              };
+            }
           }
 
           return { salaryEvents, years: newYears };
