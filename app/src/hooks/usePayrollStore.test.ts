@@ -50,4 +50,40 @@ describe('usePayrollStore', () => {
     // Feb Balance = Jan monthlyBonus + Feb monthlyBonus
     expect(feb.runningBalance).toBeCloseTo(jan.monthlyBonus + feb.monthlyBonus, 1);
   });
+
+  it('should produce identical results with partial recalculation vs full recalculation', () => {
+    const store = usePayrollStore.getState();
+    store.resetData();
+    store.initializeYear(2025);
+
+    // Scenario A: Incremental updates (uses optimized partial recalc)
+    act(() => {
+      store.setTargetNet(1, 3000);
+      store.setTargetNet(6, 4000);
+    });
+
+    const partialLedger = JSON.parse(JSON.stringify(usePayrollStore.getState().years[2025].ledger));
+    const resultingEvents = usePayrollStore.getState().salaryEvents;
+
+    // Scenario B: Full recalculation from scratch
+    act(() => {
+      store.resetData();
+      usePayrollStore.setState({ salaryEvents: resultingEvents });
+      store.initializeYear(2025);
+    });
+
+    const fullLedger = usePayrollStore.getState().years[2025].ledger;
+
+    expect(partialLedger.length).toBe(12);
+    expect(fullLedger.length).toBe(12);
+
+    for (let i = 0; i < 12; i++) {
+      expect(partialLedger[i].targetNet).toBe(fullLedger[i].targetNet);
+      expect(partialLedger[i].grossSalary).toBe(fullLedger[i].grossSalary);
+      expect(partialLedger[i].netSalary).toBe(fullLedger[i].netSalary);
+      expect(partialLedger[i].monthlyBonus).toBe(fullLedger[i].monthlyBonus);
+      expect(partialLedger[i].provisions).toBe(fullLedger[i].provisions);
+      expect(partialLedger[i].runningBalance).toBe(fullLedger[i].runningBalance);
+    }
+  });
 });
